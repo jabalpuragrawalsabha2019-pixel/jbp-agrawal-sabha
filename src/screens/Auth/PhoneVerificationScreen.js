@@ -170,6 +170,8 @@ const PhoneVerificationScreen = () => {
       }
 
       console.log('Profile created successfully:', data);
+      // Stop local loading before showing alerts or waiting for navigation
+      setLoading(false);
 
       if (verificationResult?.verified) {
         Alert.alert(

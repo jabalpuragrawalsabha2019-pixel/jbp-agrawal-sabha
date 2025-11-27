@@ -80,6 +80,9 @@ const ProfileScreen = () => {
 
       const { error } = await updateProfile({
         full_name: formData.full_name,
+        // Use phone from formData if present, otherwise fall back to existing profile phone
+        phone: formData.phone ?? profile?.phone,
+        email: formData.email ?? profile?.email,
         city: formData.city,
         occupation: formData.occupation,
         photo_url: photoUrl,

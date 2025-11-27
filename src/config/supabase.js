@@ -167,14 +167,13 @@ export const dbHelpers = {
       
       console.log('Final data to upsert:', dataToUpdate);
       
+      // Use a safer upsert pattern: omit explicit `returning` option (client handles it)
+      // and use `maybeSingle()` to avoid throwing if the response isn't exactly one row.
       const { data, error } = await supabase
         .from('users')
-        .upsert(dataToUpdate, {
-          onConflict: 'id',
-          returning: 'representation',
-        })
+        .upsert(dataToUpdate, { onConflict: 'id' })
         .select()
-        .single();
+        .maybeSingle();
       
       console.log('Upsert result:', { success: !!data, error: error?.message });
       
