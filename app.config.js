@@ -11,7 +11,7 @@ module.exports = {
     splash: {
       image: "./assets/splash.png",
       resizeMode: "contain",
-      backgroundColor: "#F97316"
+      backgroundColor: "#00000000"
     },
     assetBundlePatterns: [
       "**/*"
@@ -23,7 +23,7 @@ module.exports = {
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
-        backgroundColor: "#F97316"
+        backgroundColor: "#00000000"
       },
       package: "com.jbpagrawal.sabha",
       permissions: [
