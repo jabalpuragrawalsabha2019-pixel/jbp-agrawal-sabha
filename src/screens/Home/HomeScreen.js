@@ -16,6 +16,7 @@ import { dbHelpers } from '../../config/supabase';
 import Card from '../../components/common/Card';
 import TrainAnimation from '../../components/common/TrainAnimation';
 import { COLORS, SPACING, RADIUS, FONT_SIZES } from '../../utils/constants';
+import agrasenImg from '../../../assets/agrasen.png';
 
 const HomeScreen = ({ navigation }) => {
   const { profile, isVerified } = useAuth();
@@ -208,22 +209,19 @@ const HomeScreen = ({ navigation }) => {
         )}
 
         {/* Quote Section */}
-        <Card style={styles.quoteCard} variant="elevated">
-          <View style={styles.quoteHeader}>
-            <View style={styles.quoteImagePlaceholder}>
-              <Ionicons name="person" size={28} color={COLORS.primary} />
-            </View>
-            <Text style={styles.quoteTitle}>Maharaj Agrasen</Text>
-          </View>
-          <Text style={styles.quoteText}>
-            "एक ईंट, एक रुपया"
-          </Text>
-          <Text style={styles.quoteSubtext}>
-            Unity • Prosperity • Service
-          </Text>
-        </Card>
-
-        {/* Quick Access Modules */}
+              <Card style={[styles.quoteCard, { alignItems: 'center' }]} variant="elevated">
+              <Image
+                source={agrasenImg}
+                style={[styles.quoteImage, { width: 150, height: 150, marginBottom:-30 }]}
+              />
+              <Text style={[styles.quoteTitle, { fontSize: 20, textAlign: 'center', marginBottom:30 }]}>Maharaj Agrasen</Text>
+              <Text style={[styles.quoteText, { fontSize: 18, textAlign: 'center' }]}>
+                "एक ईंट, एक रुपया"
+              </Text>
+              <Text style={[styles.quoteSubtext, { fontSize: 14, textAlign: 'center' }]}>
+                Unity • Prosperity • Service
+              </Text>
+              </Card>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Access</Text>
           <View style={styles.modulesGrid}>
