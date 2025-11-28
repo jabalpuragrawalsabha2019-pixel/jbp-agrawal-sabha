@@ -14,19 +14,23 @@ export const AuthProvider = ({ children }) => {
     // Get initial session
     getInitialSession();
 
-    // Listen for auth changes
+    // Listen for auth changes. Do not block UI while loading profile from DB.
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth event:', event);
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          await loadUserProfile(session.user.id);
+          // Load profile asynchronously; don't await here to avoid blocking the UI
+          loadUserProfile(session.user.id).catch(err => {
+            console.error('Async loadUserProfile error:', err);
+          });
         } else {
           setProfile(null);
         }
 
+        // Unblock UI immediately; profile will update when loaded
         setLoading(false);
       }
     );
@@ -45,7 +49,8 @@ export const AuthProvider = ({ children }) => {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        await loadUserProfile(session.user.id);
+        // Do not block startup on profile load; run it asynchronously
+        loadUserProfile(session.user.id).catch(err => console.error('Initial loadUserProfile error:', err));
       }
     } catch (error) {
       console.error('Error loading session:', error);

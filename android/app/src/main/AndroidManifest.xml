@@ -34,6 +34,11 @@
         <data android:scheme="com.jbpagrawal.sabha"/>
         <data android:scheme="exp+jbp-agrawal-sabha"/>
       </intent-filter>
+      <intent-filter data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="com.jbpagrawal.sabha" android:host="auth" android:pathPrefix="/callback"/>
+        <data android:scheme="exp+jbp-agrawal-sabha" android:host="auth" android:pathPrefix="/callback"/>
+      </intent-filter>
     </activity>
   </application>
 </manifest>

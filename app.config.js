@@ -32,6 +32,29 @@ module.exports = {
         "WRITE_EXTERNAL_STORAGE",
         "NOTIFICATIONS"
       ]
+      ,
+      // Intent filters are added here so EAS-managed builds will include the
+      // deep link handling in AndroidManifest. This avoids modifying the
+      // android/ folder directly (it's excluded for EAS builds).
+      intentFilters: [
+        {
+          action: "VIEW",
+          data: [
+            {
+              scheme: "com.jbpagrawal.sabha",
+              host: "auth",
+              pathPrefix: "/callback"
+            },
+            // Keep dev-client / expo scheme entry (no host) for dev builds
+            {
+              scheme: "exp+jbp-agrawal-sabha",
+              host: "auth",
+              pathPrefix: "/callback"
+            }
+          ],
+          categories: ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     web: {
       favicon: "./assets/favicon.png"
