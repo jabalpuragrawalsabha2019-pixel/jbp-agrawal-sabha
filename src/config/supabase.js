@@ -231,7 +231,7 @@ export const dbHelpers = {
     try {
       let query = supabase
         .from('matrimonial_profiles')
-        .select('*, users(*)')
+        .select('*, users!matrimonial_profiles_user_id_fkey(*)')
         .eq('status', 'approved');
 
       if (filters.gender) query = query.eq('gender', filters.gender);
@@ -263,7 +263,7 @@ export const dbHelpers = {
     try {
       let query = supabase
         .from('events')
-        .select('*, users(*)')
+        .select('*, users!events_posted_by_fkey(*)')
         .eq('status', 'approved')
         .eq('is_visible', true);
 
@@ -298,7 +298,7 @@ export const dbHelpers = {
     try {
       const { data, error } = await supabase
         .from('jobs')
-        .select('*, users(*)')
+        .select('*, users!jobs_posted_by_fkey(*)')
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
       return { data, error };
@@ -325,7 +325,7 @@ export const dbHelpers = {
     try {
       let query = supabase
         .from('blood_donors')
-        .select('*, users(*)')
+        .select('*, users!blood_donors_user_id_fkey(*)')
         .eq('is_available', true);
 
       if (bloodGroup) query = query.eq('blood_group', bloodGroup);
@@ -382,7 +382,7 @@ export const dbHelpers = {
     try {
       const { data, error } = await supabase
         .from('post_holders')
-        .select('*, users(*)')
+        .select('*, users!post_holders_user_id_fkey(*)')
         .order('display_order', { ascending: true });
       return { data, error };
     } catch (error) {

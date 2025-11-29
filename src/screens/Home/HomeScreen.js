@@ -212,9 +212,9 @@ const HomeScreen = ({ navigation }) => {
               <Card style={[styles.quoteCard, { alignItems: 'center' }]} variant="elevated">
               <Image
                 source={agrasenImg}
-                style={[styles.quoteImage, { width: 150, height: 150, marginBottom:-30 }]}
+                style={[styles.quoteImage, { width: 350, height: 350, marginBottom:-60 }]}
               />
-              <Text style={[styles.quoteTitle, { fontSize: 20, textAlign: 'center', marginBottom:30 }]}>Maharaj Agrasen</Text>
+              <Text style={[styles.quoteTitle, { fontSize: 20, textAlign: 'center', marginBottom:20 }]}>Maharaj Agrasen</Text>
               <Text style={[styles.quoteText, { fontSize: 18, textAlign: 'center' }]}>
                 "एक ईंट, एक रुपया"
               </Text>
