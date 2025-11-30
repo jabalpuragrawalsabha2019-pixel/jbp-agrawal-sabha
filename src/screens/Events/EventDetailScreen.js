@@ -31,7 +31,7 @@ const EventDetailScreen = ({ route }) => {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select('*, users(*)')
+        .select('*, users!events_posted_by_fkey(*)')
         .eq('id', eventId)
         .single();
 
@@ -46,11 +46,15 @@ const EventDetailScreen = ({ route }) => {
 
   const handleShare = async () => {
     try {
+      const shareMessage = event.is_announcement
+        ? `${event.announcement_text || event.title}\n\n${event.description || ''}`
+        : `${event.title}\n\nDate: ${new Date(event.event_date).toLocaleDateString()}\n\n${event.description || ''}`;
+      
       await Share.share({
-        message: `${event.title}\n\nDate: ${new Date(
-          event.event_date
-        ).toLocaleDateString()}\n\n${event.description || ''}`,
-        title: event.title,
+        message: shareMessage,
+        title: event.is_announcement 
+          ? (event.announcement_text || event.title || 'Announcement')
+          : (event.title || 'Event'),
       });
     } catch (error) {
       console.error('Share error:', error);
@@ -81,10 +85,16 @@ const EventDetailScreen = ({ route }) => {
 
       <Card style={styles.card}>
         <View style={styles.headerRow}>
-          <View style={styles.typebadge}>
-            <Ionicons name="calendar" size={16} color={COLORS.primary} />
+          <View style={styles.typeBadge}>
+            <Ionicons 
+              name={event.is_announcement ? "megaphone" : "calendar"} 
+              size={16} 
+              color={COLORS.primary} 
+            />
             <Text style={styles.typeBadgeText}>
-              {event.event_type?.toUpperCase() || 'EVENT'}
+              {event.is_announcement 
+                ? 'ANNOUNCEMENT' 
+                : (event.event_type?.toUpperCase() || 'EVENT')}
             </Text>
           </View>
           <TouchableOpacity onPress={handleShare}>
@@ -92,29 +102,37 @@ const EventDetailScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.title}>{event.title}</Text>
+        <Text style={styles.title}>
+          {event.is_announcement 
+            ? (event.announcement_text || event.title || 'Announcement')
+            : (event.title || 'Event')}
+        </Text>
 
-        <View style={styles.dateRow}>
-          <Ionicons name="calendar-outline" size={20} color={COLORS.gray600} />
-          <Text style={styles.dateText}>
-            {new Date(event.event_date).toLocaleDateString('en-IN', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </Text>
-        </View>
+        {!event.is_announcement && event.event_date && (
+          <>
+            <View style={styles.dateRow}>
+              <Ionicons name="calendar-outline" size={20} color={COLORS.gray600} />
+              <Text style={styles.dateText}>
+                {new Date(event.event_date).toLocaleDateString('en-IN', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Text>
+            </View>
 
-        <View style={styles.dateRow}>
-          <Ionicons name="time-outline" size={20} color={COLORS.gray600} />
-          <Text style={styles.dateText}>
-            {new Date(event.event_date).toLocaleTimeString('en-IN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
-        </View>
+            <View style={styles.dateRow}>
+              <Ionicons name="time-outline" size={20} color={COLORS.gray600} />
+              <Text style={styles.dateText}>
+                {new Date(event.event_date).toLocaleTimeString('en-IN', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </Text>
+            </View>
+          </>
+        )}
       </Card>
 
       {event.description && (
@@ -146,14 +164,15 @@ const EventDetailScreen = ({ route }) => {
         </View>
       </Card>
 
-      <Button
-        title="Share Event"
-        onPress={handleShare}
-        variant="outline"
-        fullWidth
-        icon={<Ionicons name="share-social" size={20} color={COLORS.primary} />}
-        style={styles.shareButton}
-      />
+      <View style={styles.buttonContainer}>
+        <Button
+          title={event.is_announcement ? "Share Announcement" : "Share Event"}
+          onPress={handleShare}
+          variant="outline"
+          fullWidth
+          icon={<Ionicons name="share-social" size={20} color={COLORS.primary} />}
+        />
+      </View>
     </ScrollView>
   );
 };
@@ -164,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   content: {
-    paddingBottom: SPACING['2xl'],
+    paddingBottom: SPACING.xl,
   },
   loadingContainer: {
     flex: 1,
@@ -252,8 +271,10 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray600,
   },
-  shareButton: {
-    marginHorizontal: SPACING.lg,
+  buttonContainer: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
   },
 });
 

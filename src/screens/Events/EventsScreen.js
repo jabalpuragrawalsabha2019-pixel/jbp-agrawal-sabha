@@ -211,20 +211,22 @@ const EventsScreen = ({ navigation }) => {
             </View>
           </View>
 
-          <Text style={styles.eventTitle} numberOfLines={2}>
-            {event.is_announcement ? event.announcement_text : event.title}
+          <Text style={styles.eventTitle} numberOfLines={3}>
+            {event.is_announcement 
+              ? (event.announcement_text || event.title || 'Announcement') 
+              : (event.title || 'Event')}
           </Text>
 
-          {event.description && (
+          {!event.is_announcement && event.description && (
             <Text style={styles.eventDescription} numberOfLines={2}>
               {event.description}
             </Text>
           )}
 
           <View style={styles.eventFooter}>
-            <View style={styles.dateContainer}>
+            <View style={styles.eventDateContainer}>
               <Ionicons name="time-outline" size={14} color={COLORS.gray500} />
-              <Text style={styles.dateText}>{formatEventDate(event)}</Text>
+              <Text style={styles.eventDateText}>{formatEventDate(event)}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
           </View>
@@ -352,6 +354,16 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     paddingTop: 0,
   },
+  sectionHeader: {
+    backgroundColor: COLORS.background,
+    paddingVertical: SPACING.md,
+    paddingTop: SPACING.lg,
+  },
+  sectionTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: 'bold',
+    color: COLORS.gray900,
+  },
   eventCard: {
     marginBottom: SPACING.lg,
     overflow: 'hidden',
@@ -375,20 +387,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: `${COLORS.primary}10`,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  dateContainer: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.lg,
+  eventTypeContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
-  dateText: {
+  eventType: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
-    color: COLORS.white,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   eventTitle: {
     fontSize: FONT_SIZES.lg,
@@ -407,12 +416,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  postedBy: {
+  eventDateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
   },
-  postedByText: {
+  eventDateText: {
     fontSize: FONT_SIZES.xs,
     color: COLORS.gray500,
   },
@@ -422,9 +431,15 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING['2xl'],
   },
   emptyText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '600',
     color: COLORS.gray500,
     marginTop: SPACING.md,
+  },
+  emptySubtext: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.gray400,
+    marginTop: SPACING.xs,
   },
 });
 
