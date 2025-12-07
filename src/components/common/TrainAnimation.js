@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginBottom: -3,
 
     // 🔥 tilt slightly forward
-    transform: [{ rotate: '-6deg' }],
+    transform: [{ rotate: '-0deg' }],
   },
 
   smoke: {

@@ -275,7 +275,7 @@ export const APP_INFO = {
   version: '1.0.0',
   tagline: 'Unity • Prosperity • Service',
   email: 'info@jbpagrawal.com',
-  phone: '+91-XXXXXXXXXX',
+  phone: '+91-9826115733',
   website: 'https://jbpagrawal.com',
   
   // UPI for donations

@@ -35,7 +35,7 @@ const MatrimonialDetailScreen = ({ route }) => {
     try {
       const { data, error } = await supabase
         .from('matrimonial_profiles')
-        .select('*, users(*)')
+        .select('*, users!matrimonial_profiles_user_id_fkey(*)') 
         .eq('id', profileId)
         .single();
 

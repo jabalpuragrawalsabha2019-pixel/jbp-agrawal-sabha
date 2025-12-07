@@ -1,4 +1,5 @@
 // src/navigation/AppNavigator.js
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -32,74 +33,78 @@ const Tab = createBottomTabNavigator();
 
 // Bottom Tab Navigator
 const TabNavigator = () => {
+  const insets = useSafeAreaInsets();
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
 
-          switch (route.name) {
-            case 'Home':
-              iconName = focused ? 'home' : 'home-outline';
-              break;
-            case 'Directory':
-              iconName = focused ? 'people' : 'people-outline';
-              break;
-            case 'Matrimonial':
-              iconName = focused ? 'heart' : 'heart-outline';
-              break;
-            case 'More':
-              iconName = focused ? 'grid' : 'grid-outline';
-              break;
-            default:
-              iconName = 'help-outline';
-          }
+            switch (route.name) {
+              case 'Home':
+                iconName = focused ? 'home' : 'home-outline';
+                break;
+              case 'Directory':
+                iconName = focused ? 'people' : 'people-outline';
+                break;
+              case 'Matrimonial':
+                iconName = focused ? 'heart' : 'heart-outline';
+                break;
+              case 'More':
+                iconName = focused ? 'grid' : 'grid-outline';
+                break;
+              default:
+                iconName = 'help-outline';
+            }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.gray500,
-        tabBarStyle: {
-          backgroundColor: COLORS.white,
-          borderTopWidth: 1,
-          borderTopColor: COLORS.gray200,
-          paddingBottom: 5,
-          height: 60,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
-        headerStyle: {
-          backgroundColor: COLORS.primary,
-        },
-        headerTintColor: COLORS.white,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      })}
-    >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen}
-        options={{ title: 'JBP Agrawal Sabha' }}
-      />
-      <Tab.Screen 
-        name="Directory" 
-        component={DirectoryScreen}
-        options={{ title: 'Directory' }}
-      />
-      <Tab.Screen 
-        name="Matrimonial" 
-        component={MatrimonialListScreen}
-        options={{ title: 'Matrimonial' }}
-      />
-      <Tab.Screen 
-        name="More" 
-        component={ProfileScreen}
-        options={{ title: 'Profile' }}
-      />
-    </Tab.Navigator>
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: COLORS.primary,
+          tabBarInactiveTintColor: COLORS.gray500,
+          tabBarStyle: {
+            backgroundColor: COLORS.white,
+            borderTopWidth: 1,
+            borderTopColor: COLORS.gray200,
+            paddingBottom: Math.max(insets.bottom, 5), // Auto-adapts to nav bar
+            height: 40 + Math.max(insets.bottom, 0), // Dynamic height
+            elevation: 8,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+          },
+          headerStyle: {
+            backgroundColor: COLORS.primary,
+          },
+          headerTintColor: COLORS.white,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        })}
+      >
+        <Tab.Screen 
+          name="Home" 
+          component={HomeScreen}
+          options={{ title: 'JBP Agrawal Sabha' }}
+        />
+        <Tab.Screen 
+          name="Directory" 
+          component={DirectoryScreen}
+          options={{ title: 'Directory' }}
+        />
+        <Tab.Screen 
+          name="Matrimonial" 
+          component={MatrimonialListScreen}
+          options={{ title: 'Matrimonial' }}
+        />
+        <Tab.Screen 
+          name="More" 
+          component={ProfileScreen}
+          options={{ title: 'Profile' }}
+        />
+      </Tab.Navigator>
+    </SafeAreaView>
   );
 };
 
