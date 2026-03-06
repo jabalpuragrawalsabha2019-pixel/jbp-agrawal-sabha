@@ -290,38 +290,30 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Community Stats */}
         <Card style={styles.statsCard} variant="elevated">
-          <Text style={styles.statsTitle}>हमारा समाज</Text>
+          <View style={styles.statsTitleRow}>
+            <Ionicons name="sparkles" size={16} color={COLORS.primary} />
+            <Text style={styles.statsTitle}>हमारा समाज</Text>
+          </View>
           <Text style={styles.statsSubtitle}>Our Community at a Glance</Text>
           <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Ionicons
-                name="people"
-                size={22}
-                color={COLORS.primary}
-                style={{ marginBottom: SPACING.xs }}
-              />
+            <View style={[styles.statItem, styles.statItemMembers]}>
+              <View style={styles.statIconBadge}>
+                <Ionicons name="people" size={18} color={COLORS.primary} />
+              </View>
               <Text style={styles.statValue}>5,000+</Text>
               <Text style={styles.statLabel}>Members</Text>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Ionicons
-                name="calendar"
-                size={22}
-                color={COLORS.secondary}
-                style={{ marginBottom: SPACING.xs }}
-              />
+            <View style={[styles.statItem, styles.statItemEvents]}>
+              <View style={styles.statIconBadge}>
+                <Ionicons name="calendar" size={18} color={COLORS.secondary} />
+              </View>
               <Text style={styles.statValue}>100+</Text>
               <Text style={styles.statLabel}>Events Held</Text>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Ionicons
-                name="heart"
-                size={22}
-                color={COLORS.error}
-                style={{ marginBottom: SPACING.xs }}
-              />
+            <View style={[styles.statItem, styles.statItemMarriages]}>
+              <View style={styles.statIconBadge}>
+                <Ionicons name="heart" size={18} color={COLORS.error} />
+              </View>
               <Text style={styles.statValue}>500+</Text>
               <Text style={styles.statLabel}>Marriages</Text>
             </View>
@@ -555,9 +547,17 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     marginBottom: SPACING.lg,
-    backgroundColor: `${COLORS.primary}08`,
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: `${COLORS.primary}20`,
+    borderColor: `${COLORS.primary}25`,
+    paddingVertical: SPACING.lg,
+  },
+  statsTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.xs,
+    marginBottom: SPACING.xs,
   },
   statsTitle: {
     fontSize: FONT_SIZES.xl,
@@ -570,18 +570,43 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray500,
     textAlign: "center",
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   statsGrid: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
   },
   statItem: {
     alignItems: "center",
     flex: 1,
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  statItemMembers: {
+    backgroundColor: `${COLORS.primary}08`,
+  },
+  statItemEvents: {
+    backgroundColor: `${COLORS.secondary}10`,
+  },
+  statItemMarriages: {
+    backgroundColor: `${COLORS.error}08`,
+  },
+  statIconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.white,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.xs,
+    ...SHADOWS.sm,
   },
   statValue: {
-    fontSize: FONT_SIZES["2xl"],
+    fontSize: FONT_SIZES.xl,
     fontWeight: "800",
     color: COLORS.gray900,
     marginBottom: SPACING.xs,
@@ -592,10 +617,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: COLORS.gray200,
   },
   footer: {
     alignItems: "center",
