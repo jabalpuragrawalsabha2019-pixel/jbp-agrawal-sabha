@@ -290,31 +290,50 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Community Stats */}
         <Card style={styles.statsCard} variant="elevated">
-          <View style={styles.statsTitleRow}>
-            <Text style={styles.statsTitle}>हमारा समाज</Text>
+          <View style={styles.statsHeader}>
+            <View style={styles.statsBadge}>
+              <Text style={styles.statsBadgeText}>हमारा समाज</Text>
+            </View>
+            <Text style={styles.statsTitle}>Community Snapshot</Text>
           </View>
           <Text style={styles.statsSubtitle}>Our Community at a Glance</Text>
-          <View style={styles.statsGrid}>
-            <View style={[styles.statItem, styles.statItemMembers]}>
-              <View style={styles.statIconBadge}>
-                <Ionicons name="people" size={18} color={COLORS.primary} />
+          <View style={styles.statsList}>
+            <View style={styles.statRow}>
+              <View style={[styles.statIconBadge, styles.statIconMembers]}>
+                <Ionicons name="people" size={18} color={COLORS.primaryDark} />
               </View>
-              <Text style={styles.statValue}>5,000+</Text>
-              <Text style={styles.statLabel}>Members</Text>
+              <View style={styles.statTextBlock}>
+                <Text style={styles.statValue}>5,000+</Text>
+                <Text style={styles.statLabel}>Members</Text>
+              </View>
             </View>
-            <View style={[styles.statItem, styles.statItemEvents]}>
-              <View style={styles.statIconBadge}>
-                <Ionicons name="calendar" size={18} color={COLORS.secondary} />
+
+            <View style={styles.statRowDivider} />
+
+            <View style={styles.statRow}>
+              <View style={[styles.statIconBadge, styles.statIconEvents]}>
+                <Ionicons
+                  name="calendar"
+                  size={18}
+                  color={COLORS.secondaryDark}
+                />
               </View>
-              <Text style={styles.statValue}>100+</Text>
-              <Text style={styles.statLabel}>Events Held</Text>
+              <View style={styles.statTextBlock}>
+                <Text style={styles.statValue}>100+</Text>
+                <Text style={styles.statLabel}>Events Held</Text>
+              </View>
             </View>
-            <View style={[styles.statItem, styles.statItemMarriages]}>
-              <View style={styles.statIconBadge}>
-                <Ionicons name="heart" size={18} color={COLORS.error} />
+
+            <View style={styles.statRowDivider} />
+
+            <View style={styles.statRow}>
+              <View style={[styles.statIconBadge, styles.statIconMarriages]}>
+                <Ionicons name="heart" size={18} color={COLORS.accent} />
               </View>
-              <Text style={styles.statValue}>500+</Text>
-              <Text style={styles.statLabel}>Marriages</Text>
+              <View style={styles.statTextBlock}>
+                <Text style={styles.statValue}>500+</Text>
+                <Text style={styles.statLabel}>Marriages</Text>
+              </View>
             </View>
           </View>
         </Card>
@@ -549,71 +568,90 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderWidth: 1,
     borderColor: `${COLORS.primary}25`,
-    paddingVertical: SPACING.lg,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
   },
-  statsTitleRow: {
+  statsHeader: {
+    alignItems: "flex-start",
+    marginBottom: SPACING.xs,
+  },
+  statsBadge: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     gap: SPACING.xs,
-    marginBottom: SPACING.xs,
+    backgroundColor: `${COLORS.primary}12`,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 6,
+    marginBottom: SPACING.sm,
+  },
+  statsBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.primaryDark,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   statsTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontWeight: "bold",
-    color: COLORS.primaryDark,
-    textAlign: "center",
-    marginBottom: SPACING.xs,
+    color: COLORS.gray900,
   },
   statsSubtitle: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray500,
-    textAlign: "center",
+    textAlign: "left",
     marginBottom: SPACING.md,
   },
-  statsGrid: {
-    flexDirection: "row",
-    gap: SPACING.sm,
-    paddingHorizontal: SPACING.sm,
-  },
-  statItem: {
-    alignItems: "center",
-    flex: 1,
+  statsList: {
     borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xs,
     borderWidth: 1,
     borderColor: COLORS.gray200,
+    backgroundColor: COLORS.backgroundLight,
+    overflow: "hidden",
   },
-  statItemMembers: {
-    backgroundColor: `${COLORS.primary}08`,
+  statRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
   },
-  statItemEvents: {
-    backgroundColor: `${COLORS.secondary}10`,
+  statRowDivider: {
+    height: 1,
+    backgroundColor: COLORS.gray200,
+    marginLeft: 52,
   },
-  statItemMarriages: {
+  statTextBlock: {
+    flex: 1,
+  },
+  statIconMembers: {
+    backgroundColor: `${COLORS.primary}20`,
+  },
+  statIconEvents: {
+    backgroundColor: `${COLORS.secondary}20`,
+  },
+  statIconMarriages: {
     backgroundColor: `${COLORS.error}08`,
   },
   statIconBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: COLORS.white,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: SPACING.xs,
+    marginRight: SPACING.sm,
     ...SHADOWS.sm,
   },
   statValue: {
     fontSize: FONT_SIZES.xl,
     fontWeight: "800",
     color: COLORS.gray900,
-    marginBottom: SPACING.xs,
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: FONT_SIZES.xs,
     color: COLORS.gray500,
-    fontWeight: "500",
+    fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
