@@ -9,6 +9,10 @@ import {
   Dimensions,
   Share,
   TouchableOpacity,
+  Modal,
+  FlatList,
+  StatusBar,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "../../config/supabase";
@@ -22,6 +26,8 @@ const EventDetailScreen = ({ route }) => {
   const { eventId } = route.params;
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lightboxVisible, setLightboxVisible] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     loadEvent();
@@ -41,6 +47,22 @@ const EventDetailScreen = ({ route }) => {
       console.error("Error loading event:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openLightbox = (index) => {
+    setLightboxIndex(index);
+    setLightboxVisible(true);
+  };
+
+  const openLink = async (url) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      }
+    } catch (error) {
+      console.error("Failed to open URL:", error);
     }
   };
 
@@ -173,12 +195,123 @@ const EventDetailScreen = ({ route }) => {
         </View>
       </Card>
 
+      {/* Gallery — Photos */}
+      {event.gallery_images && event.gallery_images.length > 0 && (
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>
+            Photos ({event.gallery_images.length})
+          </Text>
+          <View style={styles.galleryGrid}>
+            {event.gallery_images
+              .map((uri, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={styles.galleryThumb}
+                  onPress={() => openLightbox(idx)}
+                  activeOpacity={0.85}
+                >
+                  <Image source={{ uri }} style={styles.galleryThumbImg} />
+                  {idx === 8 && event.gallery_images.length > 9 && (
+                    <View style={styles.galleryMore}>
+                      <Text style={styles.galleryMoreText}>
+                        +{event.gallery_images.length - 9}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))
+              .slice(0, 9)}
+          </View>
+        </Card>
+      )}
+
+      {/* Gallery — Links */}
+      {event.gallery_links && event.gallery_links.length > 0 && (
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>Photo Albums</Text>
+          <View style={styles.linksContainer}>
+            {event.gallery_links.map((link, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={styles.linkRow}
+                onPress={() => openLink(link.url)}
+                activeOpacity={0.75}
+              >
+                <View style={styles.linkIconWrap}>
+                  <Ionicons name="link" size={18} color={COLORS.primary} />
+                </View>
+                <View style={styles.linkTextWrap}>
+                  <Text style={styles.linkTitle} numberOfLines={1}>
+                    {link.title || "View Album"}
+                  </Text>
+                  <Text style={styles.linkUrl} numberOfLines={1}>
+                    {link.url}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="open-outline"
+                  size={16}
+                  color={COLORS.gray400}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Card>
+      )}
+
       <TouchableOpacity style={styles.bottomShareBtn} onPress={handleShare}>
         <Ionicons name="share-social-outline" size={20} color={COLORS.white} />
         <Text style={styles.bottomShareBtnText}>
           {event.is_announcement ? "Share Announcement" : "Share Event"}
         </Text>
       </TouchableOpacity>
+
+      {/* Lightbox */}
+      <Modal
+        visible={lightboxVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setLightboxVisible(false)}
+      >
+        <View style={styles.lightboxOverlay}>
+          <TouchableOpacity
+            style={styles.lightboxClose}
+            onPress={() => setLightboxVisible(false)}
+          >
+            <Ionicons name="close" size={28} color={COLORS.white} />
+          </TouchableOpacity>
+          <Text style={styles.lightboxCounter}>
+            {lightboxIndex + 1} / {event.gallery_images?.length}
+          </Text>
+          <FlatList
+            data={event.gallery_images}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            initialScrollIndex={lightboxIndex}
+            getItemLayout={(_, index) => ({
+              length: width,
+              offset: width * index,
+              index,
+            })}
+            onMomentumScrollEnd={(e) => {
+              const index = Math.round(e.nativeEvent.contentOffset.x / width);
+              setLightboxIndex(index);
+            }}
+            keyExtractor={(_, i) => String(i)}
+            renderItem={({ item }) => (
+              <View style={styles.lightboxImageWrap}>
+                <Image
+                  source={{ uri: item }}
+                  style={styles.lightboxImage}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+          />
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -314,6 +447,101 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.lg,
+  },
+  // Gallery grid
+  galleryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+  },
+  galleryThumb: {
+    width: (width - SPACING.lg * 2 - SPACING.md * 2 - 8) / 3,
+    height: (width - SPACING.lg * 2 - SPACING.md * 2 - 8) / 3,
+    borderRadius: RADIUS.sm,
+    overflow: "hidden",
+    backgroundColor: COLORS.gray100,
+  },
+  galleryThumbImg: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  galleryMore: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  galleryMoreText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.xl,
+    fontWeight: "bold",
+  },
+  // Links
+  linksContainer: {
+    gap: SPACING.sm,
+  },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.md,
+    backgroundColor: `${COLORS.primary}08`,
+    borderWidth: 1,
+    borderColor: `${COLORS.primary}25`,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+  },
+  linkIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: `${COLORS.primary}15`,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  linkTextWrap: {
+    flex: 1,
+  },
+  linkTitle: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: "600",
+    color: COLORS.gray900,
+  },
+  linkUrl: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray500,
+    marginTop: 2,
+  },
+  // Lightbox
+  lightboxOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.95)",
+    justifyContent: "center",
+  },
+  lightboxClose: {
+    position: "absolute",
+    top: 50,
+    right: SPACING.lg,
+    zIndex: 10,
+    padding: SPACING.sm,
+  },
+  lightboxCounter: {
+    position: "absolute",
+    top: 55,
+    alignSelf: "center",
+    color: COLORS.white,
+    fontSize: FONT_SIZES.sm,
+    zIndex: 10,
+  },
+  lightboxImageWrap: {
+    width,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lightboxImage: {
+    width,
+    height: width * 1.2,
   },
 });
 
