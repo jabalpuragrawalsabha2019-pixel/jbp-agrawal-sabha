@@ -1,5 +1,5 @@
 // src/screens/Auth/PhoneVerificationScreen.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,36 +10,42 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../hooks/useAuth';
-import Button from '../../components/common/Button';
-import Card from '../../components/common/Card';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../hooks/useAuth";
+import Button from "../../components/common/Button";
+import Card from "../../components/common/Card";
 import {
   COLORS,
   SPACING,
   RADIUS,
   FONT_SIZES,
   PATTERNS,
-} from '../../utils/constants';
+} from "../../utils/constants";
 
-const GENDER_OPTIONS = ['male', 'female'];
-const GUARDIAN_TYPES = ['father', 'husband'];
+const GENDER_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+];
+const GUARDIAN_TYPES = [
+  { value: "father", label: "Father's Name" },
+  { value: "husband", label: "Husband's Name" },
+];
 
 const PhoneVerificationScreen = () => {
   const { checkPhoneVerification, createUserProfile, user } = useAuth();
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
-  const [loadingMessage, setLoadingMessage] = useState('');
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState({
-    full_name: user?.user_metadata?.full_name || '',
-    gender: '',
-    guardian_type: 'father',
-    guardian_name: '',
-    city: '',
-    occupation: '',
+    full_name: user?.user_metadata?.full_name || "",
+    gender: "",
+    guardian_type: "father",
+    guardian_name: "",
+    city: "",
+    occupation: "",
   });
 
   // requestIdRef helps ignore stale async responses (e.g., after sign-out/in)
@@ -50,23 +56,23 @@ const PhoneVerificationScreen = () => {
     // bump requestId to invalidate any in-flight verification
     requestIdRef.current += 1;
     setVerificationResult(null);
-    setPhone('');
+    setPhone("");
     setLoading(false);
     setAdditionalInfo({
-      full_name: user?.user_metadata?.full_name || '',
-      gender: '',
-      guardian_type: 'father',
-      guardian_name: '',
-      city: '',
-      occupation: '',
+      full_name: user?.user_metadata?.full_name || "",
+      gender: "",
+      guardian_type: "father",
+      guardian_name: "",
+      city: "",
+      occupation: "",
     });
   }, [user]);
 
   const handleVerifyPhone = async () => {
     if (!phone || !PATTERNS.phone.test(phone)) {
       Alert.alert(
-        'Invalid Phone',
-        'Please enter a valid 10-digit phone number'
+        "Invalid Phone",
+        "Please enter a valid 10-digit phone number",
       );
       return;
     }
@@ -77,10 +83,10 @@ const PhoneVerificationScreen = () => {
     setLoading(true);
     const cleanPhone = phone.trim();
     console.log(
-      'Verifying phone (requestId=' + localRequestId + '):',
-      cleanPhone
+      "Verifying phone (requestId=" + localRequestId + "):",
+      cleanPhone,
     );
-    setLoadingMessage('Checking member registry...');
+    setLoadingMessage("Checking member registry...");
 
     // Increased timeout to account for potential retries (20s + 1s delay + 40s + 1s delay = 62s)
     // Adding 10s buffer = 72s total
@@ -90,11 +96,11 @@ const PhoneVerificationScreen = () => {
         () =>
           reject(
             new Error(
-              'Phone verification is taking too long. Please try again.'
-            )
+              "Phone verification is taking too long. Please try again.",
+            ),
           ),
-        timeoutMs
-      )
+        timeoutMs,
+      ),
     );
 
     try {
@@ -107,9 +113,9 @@ const PhoneVerificationScreen = () => {
       // If another request or user change occurred, ignore this result
       if (localRequestId !== requestIdRef.current) {
         console.log(
-          'Stale verification response (requestId=' +
+          "Stale verification response (requestId=" +
             localRequestId +
-            '), ignoring'
+            "), ignoring",
         );
         return;
       }
@@ -120,53 +126,53 @@ const PhoneVerificationScreen = () => {
       const data = result?.data ?? null;
       const error = result?.error ?? null;
 
-      console.log('Verification result (requestId=' + localRequestId + '):', {
+      console.log("Verification result (requestId=" + localRequestId + "):", {
         data,
         error,
       });
 
       if (error) {
-        console.log('Error during verification:', error);
+        console.log("Error during verification:", error);
         setVerificationResult({ verified: false });
         Alert.alert(
-          '⚠️ Error',
-          'There was an error verifying your phone. You can continue with limited access.',
-          [{ text: 'Continue' }]
+          "⚠️ Error",
+          "There was an error verifying your phone. You can continue with limited access.",
+          [{ text: "Continue" }],
         );
         return;
       }
 
       if (data) {
-        console.log('Phone found in approved list:', data);
+        console.log("Phone found in approved list:", data);
         setVerificationResult({ verified: true, data });
         setAdditionalInfo({
-          full_name: data.full_name || user?.user_metadata?.full_name || '',
-          gender: '',
-          guardian_type: 'father',
-          guardian_name: '',
-          city: data.city || '',
-          occupation: '',
+          full_name: data.full_name || user?.user_metadata?.full_name || "",
+          gender: "",
+          guardian_type: "father",
+          guardian_name: "",
+          city: data.city || "",
+          occupation: "",
         });
         Alert.alert(
-          '✅ Verified!',
-          'Your phone number is registered. You will have full access to the app.',
-          [{ text: 'Continue' }]
+          "✅ Verified!",
+          "Your phone number is registered. You will have full access to the app.",
+          [{ text: "Continue" }],
         );
       } else {
-        console.log('Phone not found, creating unverified profile');
+        console.log("Phone not found, creating unverified profile");
         setVerificationResult({ verified: false });
         Alert.alert(
-          '⚠️ Phone Not Found',
-          'Your phone number is not in our registry. You can still create a profile with read-only access. An admin will verify you later for full access.',
-          [{ text: 'Continue' }]
+          "⚠️ Phone Not Found",
+          "Your phone number is not in our registry. You can still create a profile with read-only access. An admin will verify you later for full access.",
+          [{ text: "Continue" }],
         );
       }
     } catch (err) {
       // If request is stale, ignore
       if (localRequestId !== requestIdRef.current) {
         console.log(
-          'Stale/ignored error for requestId=' + localRequestId + ':',
-          err.message
+          "Stale/ignored error for requestId=" + localRequestId + ":",
+          err.message,
         );
         return;
       }
@@ -174,38 +180,38 @@ const PhoneVerificationScreen = () => {
       setLoading(false);
       setVerificationResult({ verified: false });
       console.error(
-        'Verification error (requestId=' + localRequestId + '):',
-        err
+        "Verification error (requestId=" + localRequestId + "):",
+        err,
       );
       Alert.alert(
-        'Verification Error',
+        "Verification Error",
         err.message ||
-          'An unexpected error occurred. You can continue with limited access.',
-        [{ text: 'OK' }]
+          "An unexpected error occurred. You can continue with limited access.",
+        [{ text: "OK" }],
       );
     }
   };
 
   const handleCompleteProfile = async () => {
     if (!additionalInfo.full_name.trim()) {
-      Alert.alert('Required', 'Please enter your full name');
+      Alert.alert("Required", "Please enter your full name");
       return;
     }
 
     if (!additionalInfo.city.trim()) {
-      Alert.alert('Required', 'Please enter your city');
+      Alert.alert("Required", "Please enter your city");
       return;
     }
 
     try {
       setLoading(true);
-      console.log('Starting profile creation...');
+      console.log("Starting profile creation...");
 
       const profileData = {
         phone: phone,
         full_name: additionalInfo.full_name.trim(),
         gender: additionalInfo.gender || null,
-        guardian_type: additionalInfo.guardian_type || 'father',
+        guardian_type: additionalInfo.guardian_type || "father",
         guardian_name: additionalInfo.guardian_name.trim() || null,
         city: additionalInfo.city.trim(),
         occupation: additionalInfo.occupation.trim() || null,
@@ -216,42 +222,42 @@ const PhoneVerificationScreen = () => {
           null,
       };
 
-      console.log('Creating profile with data:', profileData);
+      console.log("Creating profile with data:", profileData);
 
       const { data, error } = await createUserProfile(profileData);
 
       if (error) {
-        console.error('Profile creation error:', error);
+        console.error("Profile creation error:", error);
         throw error;
       }
 
       if (!data) {
-        throw new Error('Profile creation returned no data');
+        throw new Error("Profile creation returned no data");
       }
 
-      console.log('Profile created successfully:', data);
+      console.log("Profile created successfully:", data);
       // Stop local loading before showing alerts or waiting for navigation
       setLoading(false);
 
       if (verificationResult?.verified) {
         Alert.alert(
-          '🎉 Welcome!',
-          'Your profile has been created successfully. You have full access to all features.',
-          [{ text: 'Get Started' }]
+          "🎉 Welcome!",
+          "Your profile has been created successfully. You have full access to all features.",
+          [{ text: "Get Started" }],
         );
       } else {
         Alert.alert(
-          '✅ Profile Created',
-          'Your profile has been created with read-only access. You can view all content, but posting requires admin verification. We will notify you once verified.',
-          [{ text: 'Continue' }]
+          "✅ Profile Created",
+          "Your profile has been created with read-only access. You can view all content, but posting requires admin verification. We will notify you once verified.",
+          [{ text: "Continue" }],
         );
       }
     } catch (error) {
-      console.error('Profile creation error:', error);
+      console.error("Profile creation error:", error);
       Alert.alert(
-        'Error',
+        "Error",
         error.message ||
-          'Unable to create profile. Please check your connection and try again.'
+          "Unable to create profile. Please check your connection and try again.",
       );
       setLoading(false);
     }
@@ -263,7 +269,7 @@ const PhoneVerificationScreen = () => {
       style={styles.container}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -274,10 +280,10 @@ const PhoneVerificationScreen = () => {
             <Text style={styles.title}>Verify Your Phone</Text>
             <Text style={styles.subtitle}>
               {verificationResult === null
-                ? 'Enter your phone number to continue'
+                ? "Enter your phone number to continue"
                 : verificationResult.verified
-                  ? '✅ Verified! Complete your profile'
-                  : '⚠️ Create your profile'}
+                  ? "✅ Verified! Complete your profile"
+                  : "⚠️ Create your profile"}
             </Text>
           </View>
 
@@ -395,7 +401,7 @@ const PhoneVerificationScreen = () => {
                   </View>
                 </View>
 
-                {additionalInfo.gender === 'female' && (
+                {additionalInfo.gender === "female" && (
                   <View style={styles.inputGroup}>
                     <Text style={styles.label}>Name Type</Text>
                     <View style={styles.toggleRow}>
@@ -432,8 +438,8 @@ const PhoneVerificationScreen = () => {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>
-                    {additionalInfo.gender === 'female'
-                      ? additionalInfo.guardian_type === 'husband'
+                    {additionalInfo.gender === "female"
+                      ? additionalInfo.guardian_type === "husband"
                         ? "Husband's Name"
                         : "Father's Name"
                       : "Father's Name"}
@@ -441,8 +447,8 @@ const PhoneVerificationScreen = () => {
                   <TextInput
                     style={styles.inputField}
                     placeholder={
-                      additionalInfo.gender === 'female'
-                        ? additionalInfo.guardian_type === 'husband'
+                      additionalInfo.gender === "female"
+                        ? additionalInfo.guardian_type === "husband"
                           ? "Enter husband's name"
                           : "Enter father's name"
                         : "Enter father's name"
@@ -606,18 +612,18 @@ const PhoneVerificationScreen = () => {
                   <View style={styles.toggleRow}>
                     {GENDER_OPTIONS.map((g) => (
                       <TouchableOpacity
-                        key={g}
+                        key={g.value}
                         style={[
                           styles.toggleOption,
-                          additionalInfo.gender === g &&
+                          additionalInfo.gender === g.value &&
                             styles.toggleOptionActive,
                         ]}
                         onPress={() =>
                           setAdditionalInfo({
                             ...additionalInfo,
-                            gender: g,
-                            guardian_type: 'father',
-                            guardian_name: '',
+                            gender: g.value,
+                            guardian_type: "father",
+                            guardian_name: "",
                           })
                         }
                         disabled={loading}
@@ -625,34 +631,34 @@ const PhoneVerificationScreen = () => {
                         <Text
                           style={[
                             styles.toggleOptionText,
-                            additionalInfo.gender === g &&
+                            additionalInfo.gender === g.value &&
                               styles.toggleOptionTextActive,
                           ]}
                         >
-                          {g === 'male' ? 'Male' : 'Female'}
+                          {g.label}
                         </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 </View>
 
-                {additionalInfo.gender === 'female' && (
+                {additionalInfo.gender === "female" && (
                   <View style={styles.inputGroup}>
                     <Text style={styles.label}>Name Type</Text>
                     <View style={styles.toggleRow}>
                       {GUARDIAN_TYPES.map((t) => (
                         <TouchableOpacity
-                          key={t}
+                          key={t.value}
                           style={[
                             styles.toggleOption,
-                            additionalInfo.guardian_type === t &&
+                            additionalInfo.guardian_type === t.value &&
                               styles.toggleOptionActive,
                           ]}
                           onPress={() =>
                             setAdditionalInfo({
                               ...additionalInfo,
-                              guardian_type: t,
-                              guardian_name: '',
+                              guardian_type: t.value,
+                              guardian_name: "",
                             })
                           }
                           disabled={loading}
@@ -660,11 +666,11 @@ const PhoneVerificationScreen = () => {
                           <Text
                             style={[
                               styles.toggleOptionText,
-                              additionalInfo.guardian_type === t &&
+                              additionalInfo.guardian_type === t.value &&
                                 styles.toggleOptionTextActive,
                             ]}
                           >
-                            {t === 'father' ? "Father's" : "Husband's"}
+                            {t.label}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -675,16 +681,16 @@ const PhoneVerificationScreen = () => {
                 {additionalInfo.gender ? (
                   <View style={styles.inputGroup}>
                     <Text style={styles.label}>
-                      {additionalInfo.gender === 'female' &&
-                      additionalInfo.guardian_type === 'husband'
+                      {additionalInfo.gender === "female" &&
+                      additionalInfo.guardian_type === "husband"
                         ? "Husband's Name"
                         : "Father's Name"}
                     </Text>
                     <TextInput
                       style={styles.inputField}
                       placeholder={
-                        additionalInfo.gender === 'female' &&
-                        additionalInfo.guardian_type === 'husband'
+                        additionalInfo.gender === "female" &&
+                        additionalInfo.guardian_type === "husband"
                           ? "Enter husband's name"
                           : "Enter father's name"
                       }
@@ -768,28 +774,28 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: SPACING.xl,
   },
   iconContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: FONT_SIZES['2xl'],
-    fontWeight: 'bold',
+    fontSize: FONT_SIZES["2xl"],
+    fontWeight: "bold",
     color: COLORS.white,
     marginBottom: SPACING.sm,
   },
   subtitle: {
     fontSize: FONT_SIZES.base,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
+    color: "rgba(255, 255, 255, 0.9)",
+    textAlign: "center",
   },
   content: {
     flex: 1,
@@ -802,13 +808,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: FONT_SIZES.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray700,
     marginBottom: SPACING.sm,
   },
   phoneInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.gray50,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
@@ -817,7 +823,7 @@ const styles = StyleSheet.create({
   },
   prefix: {
     fontSize: FONT_SIZES.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray700,
     marginRight: SPACING.sm,
   },
@@ -838,8 +844,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   infoBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.sm,
     backgroundColor: COLORS.gray50,
     padding: SPACING.md,
@@ -854,7 +860,7 @@ const styles = StyleSheet.create({
   loadingMessageBox: {
     marginTop: SPACING.md,
     padding: SPACING.md,
-    backgroundColor: COLORS.info + '15',
+    backgroundColor: COLORS.info + "15",
     borderRadius: RADIUS.lg,
     borderLeftWidth: 4,
     borderLeftColor: COLORS.info,
@@ -862,38 +868,38 @@ const styles = StyleSheet.create({
   loadingMessage: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.info,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
   },
   successBanner: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: SPACING.lg,
     padding: SPACING.md,
-    backgroundColor: COLORS.success + '20',
+    backgroundColor: COLORS.success + "20",
     borderRadius: RADIUS.lg,
   },
   successText: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.success,
     marginTop: SPACING.sm,
   },
   warningBanner: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: SPACING.lg,
     padding: SPACING.md,
-    backgroundColor: COLORS.warning + '20',
+    backgroundColor: COLORS.warning + "20",
     borderRadius: RADIUS.lg,
   },
   warningText: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.warning,
     marginTop: SPACING.sm,
   },
   verifiedInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: SPACING.md,
     backgroundColor: COLORS.gray50,
     borderRadius: RADIUS.lg,
@@ -905,7 +911,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: FONT_SIZES.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray900,
   },
   unverifiedInfo: {
@@ -913,10 +919,10 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
     lineHeight: 20,
     marginBottom: SPACING.lg,
-    textAlign: 'center',
+    textAlign: "center",
   },
   toggleRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.md,
   },
   toggleOption: {
@@ -926,20 +932,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.gray300,
     backgroundColor: COLORS.gray50,
-    alignItems: 'center',
+    alignItems: "center",
   },
   toggleOptionActive: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '15',
+    backgroundColor: COLORS.primary + "15",
   },
   toggleOptionText: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray600,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   toggleOptionTextActive: {
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
 

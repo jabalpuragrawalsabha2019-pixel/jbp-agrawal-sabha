@@ -1,5 +1,5 @@
 // src/screens/Profile/ProfileScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,13 @@ import {
   TextInput,
   Alert,
   Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { useAuth } from '../../hooks/useAuth';
-import { uploadImageToCloudinary } from '../../config/cloudinary';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "../../hooks/useAuth";
+import { uploadImageToCloudinary } from "../../config/cloudinary";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
 import {
   COLORS,
   SPACING,
@@ -23,30 +23,45 @@ import {
   FONT_SIZES,
   CITIES,
   OCCUPATIONS,
-} from '../../utils/constants';
+} from "../../utils/constants";
 
 const ProfileScreen = () => {
   const { profile, isVerified, isAdmin, updateProfile, signOut } = useAuth();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || '',
-    gender: profile?.gender || '',
-    guardian_type: profile?.guardian_type || 'father',
-    guardian_name: profile?.guardian_name || '',
-    city: profile?.city || '',
-    occupation: profile?.occupation || '',
-    photo_url: profile?.photo_url || '',
+    full_name: profile?.full_name || "",
+    gender: profile?.gender || "",
+    guardian_type: profile?.guardian_type || "father",
+    guardian_name: profile?.guardian_name || "",
+    city: profile?.city || "",
+    occupation: profile?.occupation || "",
+    photo_url: profile?.photo_url || "",
   });
+
+  // Sync formData when profile updates (e.g. after onboarding or refresh)
+  useEffect(() => {
+    if (profile && !editing) {
+      setFormData({
+        full_name: profile.full_name || "",
+        gender: profile.gender || "",
+        guardian_type: profile.guardian_type || "father",
+        guardian_name: profile.guardian_name || "",
+        city: profile.city || "",
+        occupation: profile.occupation || "",
+        photo_url: profile.photo_url || "",
+      });
+    }
+  }, [profile]);
 
   const handleImagePick = async () => {
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
+      if (status !== "granted") {
         Alert.alert(
-          'Permission Required',
-          'Please allow access to your photos'
+          "Permission Required",
+          "Please allow access to your photos",
         );
         return;
       }
@@ -62,14 +77,14 @@ const ProfileScreen = () => {
         setFormData({ ...formData, photo_url: result.assets[0].uri });
       }
     } catch (error) {
-      console.error('Image pick error:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      console.error("Image pick error:", error);
+      Alert.alert("Error", "Failed to pick image");
     }
   };
 
   const handleSave = async () => {
     if (!formData.full_name.trim()) {
-      Alert.alert('Required', 'Please enter your name');
+      Alert.alert("Required", "Please enter your name");
       return;
     }
 
@@ -82,23 +97,23 @@ const ProfileScreen = () => {
       if (
         formData.photo_url &&
         formData.photo_url !== profile?.photo_url &&
-        formData.photo_url.startsWith('file://')
+        formData.photo_url.startsWith("file://")
       ) {
-        console.log('Uploading image to Cloudinary...');
+        console.log("Uploading image to Cloudinary...");
 
         const uploadResult = await uploadImageToCloudinary(
           formData.photo_url,
-          'profiles'
+          "profiles",
         );
 
         if (uploadResult.success) {
           photoUrl = uploadResult.url;
-          console.log('Image uploaded successfully:', photoUrl);
+          console.log("Image uploaded successfully:", photoUrl);
         } else {
-          throw new Error('Failed to upload image: ' + uploadResult.error);
+          throw new Error("Failed to upload image: " + uploadResult.error);
         }
       }
-      console.log('data to be sent - ', {
+      console.log("data to be sent - ", {
         full_name: formData.full_name,
         gender: formData.gender,
         guardian_type: formData.guardian_type,
@@ -123,49 +138,49 @@ const ProfileScreen = () => {
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Profile updated successfully!');
+      Alert.alert("Success", "Profile updated successfully!");
       setEditing(false);
     } catch (error) {
-      console.error('Update error:', error);
-      Alert.alert('Error', 'Failed to update profile: ' + error.message);
+      console.error("Update error:", error);
+      Alert.alert("Error", "Failed to update profile: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSignOut = async () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Sign Out',
-        style: 'destructive',
+        text: "Sign Out",
+        style: "destructive",
         onPress: async () => {
           try {
-            console.log('User initiated sign out');
+            console.log("User initiated sign out");
             const { error } = await signOut();
 
             if (error) {
-              Alert.alert('Error', 'Failed to sign out: ' + error.message);
+              Alert.alert("Error", "Failed to sign out: " + error.message);
             } else {
-              console.log('Sign out successful, clearing app state...');
+              console.log("Sign out successful, clearing app state...");
 
               // Clear any local state
               setFormData({
-                full_name: '',
-                gender: '',
-                guardian_type: 'father',
-                guardian_name: '',
-                city: '',
-                occupation: '',
-                photo_url: '',
+                full_name: "",
+                gender: "",
+                guardian_type: "father",
+                guardian_name: "",
+                city: "",
+                occupation: "",
+                photo_url: "",
               });
 
               // Force navigation to login (AppNavigator will handle this)
-              console.log('Waiting for navigation to login...');
+              console.log("Waiting for navigation to login...");
             }
           } catch (err) {
-            console.error('Sign out exception:', err);
-            Alert.alert('Error', 'An error occurred during sign out');
+            console.error("Sign out exception:", err);
+            Alert.alert("Error", "An error occurred during sign out");
           }
         },
       },
@@ -200,7 +215,7 @@ const ProfileScreen = () => {
           </TouchableOpacity>
 
           <View style={styles.headerInfo}>
-            <Text style={styles.name}>{profile?.full_name || 'User'}</Text>
+            <Text style={styles.name}>{profile?.full_name || "User"}</Text>
             <View style={styles.statusBadge}>
               {isVerified ? (
                 <>
@@ -240,19 +255,19 @@ const ProfileScreen = () => {
             onPress={() => {
               if (editing) {
                 setFormData({
-                  full_name: profile?.full_name || '',
-                  gender: profile?.gender || '',
-                  guardian_type: profile?.guardian_type || 'father',
-                  guardian_name: profile?.guardian_name || '',
-                  city: profile?.city || '',
-                  occupation: profile?.occupation || '',
-                  photo_url: profile?.photo_url || '',
+                  full_name: profile?.full_name || "",
+                  gender: profile?.gender || "",
+                  guardian_type: profile?.guardian_type || "father",
+                  guardian_name: profile?.guardian_name || "",
+                  city: profile?.city || "",
+                  occupation: profile?.occupation || "",
+                  photo_url: profile?.photo_url || "",
                 });
               }
               setEditing(!editing);
             }}
           >
-            <Text style={styles.editText}>{editing ? 'Cancel' : 'Edit'}</Text>
+            <Text style={styles.editText}>{editing ? "Cancel" : "Edit"}</Text>
           </TouchableOpacity>
         </View>
 
@@ -269,7 +284,7 @@ const ProfileScreen = () => {
               placeholderTextColor={COLORS.gray400}
             />
           ) : (
-            <Text style={styles.value}>{profile?.full_name || '-'}</Text>
+            <Text style={styles.value}>{profile?.full_name || "-"}</Text>
           )}
         </View>
 
@@ -277,7 +292,7 @@ const ProfileScreen = () => {
           <Text style={styles.label}>Gender</Text>
           {editing ? (
             <View style={styles.genderRow}>
-              {['male', 'female'].map((g) => (
+              {["male", "female"].map((g) => (
                 <TouchableOpacity
                   key={g}
                   style={[
@@ -288,8 +303,8 @@ const ProfileScreen = () => {
                     setFormData({
                       ...formData,
                       gender: g,
-                      guardian_type: g === 'male' ? 'father' : 'father',
-                      guardian_name: '',
+                      guardian_type: g === "male" ? "father" : "father",
+                      guardian_name: "",
                     })
                   }
                 >
@@ -299,7 +314,7 @@ const ProfileScreen = () => {
                       formData.gender === g && styles.genderOptionTextActive,
                     ]}
                   >
-                    {g === 'male' ? 'Male' : 'Female'}
+                    {g === "male" ? "Male" : "Female"}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -307,22 +322,22 @@ const ProfileScreen = () => {
           ) : (
             <Text style={styles.value}>
               {profile?.gender
-                ? profile.gender === 'male'
-                  ? 'Male'
-                  : 'Female'
-                : '-'}
+                ? profile.gender === "male"
+                  ? "Male"
+                  : "Female"
+                : "-"}
             </Text>
           )}
         </View>
 
         {(editing
-          ? formData.gender === 'female'
-          : profile?.gender === 'female') && (
+          ? formData.gender === "female"
+          : profile?.gender === "female") && (
           <View style={styles.infoGroup}>
             <Text style={styles.label}>Name Type</Text>
             {editing ? (
               <View style={styles.genderRow}>
-                {['father', 'husband'].map((t) => (
+                {["father", "husband"].map((t) => (
                   <TouchableOpacity
                     key={t}
                     style={[
@@ -333,7 +348,7 @@ const ProfileScreen = () => {
                       setFormData({
                         ...formData,
                         guardian_type: t,
-                        guardian_name: '',
+                        guardian_name: "",
                       })
                     }
                   >
@@ -344,14 +359,14 @@ const ProfileScreen = () => {
                           styles.genderOptionTextActive,
                       ]}
                     >
-                      {t === 'father' ? "Father's Name" : "Husband's Name"}
+                      {t === "father" ? "Father's Name" : "Husband's Name"}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
             ) : (
               <Text style={styles.value}>
-                {profile?.guardian_type === 'husband'
+                {profile?.guardian_type === "husband"
                   ? "Husband's Name"
                   : "Father's Name"}
               </Text>
@@ -367,7 +382,7 @@ const ProfileScreen = () => {
                 const gType = editing
                   ? formData.guardian_type
                   : profile?.guardian_type;
-                if (gender === 'female' && gType === 'husband')
+                if (gender === "female" && gType === "husband")
                   return "Husband's Name";
                 return "Father's Name";
               })()}
@@ -380,27 +395,27 @@ const ProfileScreen = () => {
                   setFormData({ ...formData, guardian_name: text })
                 }
                 placeholder={
-                  formData.gender === 'female' &&
-                  formData.guardian_type === 'husband'
+                  formData.gender === "female" &&
+                  formData.guardian_type === "husband"
                     ? "Enter husband's name"
                     : "Enter father's name"
                 }
                 placeholderTextColor={COLORS.gray400}
               />
             ) : (
-              <Text style={styles.value}>{profile?.guardian_name || '-'}</Text>
+              <Text style={styles.value}>{profile?.guardian_name || "-"}</Text>
             )}
           </View>
         )}
 
         <View style={styles.infoGroup}>
           <Text style={styles.label}>Phone</Text>
-          <Text style={styles.value}>+91 {profile?.phone || '-'}</Text>
+          <Text style={styles.value}>+91 {profile?.phone || "-"}</Text>
         </View>
 
         <View style={styles.infoGroup}>
           <Text style={styles.label}>Email</Text>
-          <Text style={styles.value}>{profile?.email || '-'}</Text>
+          <Text style={styles.value}>{profile?.email || "-"}</Text>
         </View>
 
         <View style={styles.infoGroup}>
@@ -414,7 +429,7 @@ const ProfileScreen = () => {
               placeholderTextColor={COLORS.gray400}
             />
           ) : (
-            <Text style={styles.value}>{profile?.city || '-'}</Text>
+            <Text style={styles.value}>{profile?.city || "-"}</Text>
           )}
         </View>
 
@@ -431,7 +446,7 @@ const ProfileScreen = () => {
               placeholderTextColor={COLORS.gray400}
             />
           ) : (
-            <Text style={styles.value}>{profile?.occupation || '-'}</Text>
+            <Text style={styles.value}>{profile?.occupation || "-"}</Text>
           )}
         </View>
 
@@ -474,18 +489,18 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: SPACING.lg,
-    paddingBottom: SPACING['2xl'],
+    paddingBottom: SPACING["2xl"],
   },
   headerCard: {
     marginBottom: SPACING.lg,
   },
   profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.lg,
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
   },
   avatar: {
     width: 100,
@@ -499,21 +514,21 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     backgroundColor: COLORS.gray100,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 3,
     borderColor: COLORS.gray300,
   },
   cameraIcon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: COLORS.white,
   },
@@ -522,63 +537,63 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: FONT_SIZES.xl,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.gray900,
     marginBottom: SPACING.sm,
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.xs,
     backgroundColor: COLORS.gray50,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginBottom: SPACING.xs,
   },
   verifiedText: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.success,
   },
   pendingText: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.warning,
   },
   adminBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.xs,
     backgroundColor: `${COLORS.primary}20`,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   adminText: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
   },
   infoCard: {
     marginBottom: SPACING.lg,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SPACING.lg,
   },
   cardTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.gray900,
   },
   editText: {
     fontSize: FONT_SIZES.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
   },
   infoGroup: {
@@ -586,7 +601,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: FONT_SIZES.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray600,
     marginBottom: SPACING.sm,
   },
@@ -605,7 +620,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   genderRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.md,
   },
   genderOption: {
@@ -615,7 +630,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.gray300,
     backgroundColor: COLORS.gray50,
-    alignItems: 'center',
+    alignItems: "center",
   },
   genderOptionActive: {
     borderColor: COLORS.primary,
@@ -624,11 +639,11 @@ const styles = StyleSheet.create({
   genderOptionText: {
     fontSize: FONT_SIZES.base,
     color: COLORS.gray600,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   genderOptionTextActive: {
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   saveButton: {
     marginTop: SPACING.md,
@@ -637,8 +652,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   actionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.md,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
@@ -646,10 +661,10 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: FONT_SIZES.base,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: SPACING.xl,
   },
   footerText: {
