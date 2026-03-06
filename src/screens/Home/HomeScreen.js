@@ -1,5 +1,5 @@
 // src/screens/Home/HomeScreen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,15 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../hooks/useAuth';
-import { dbHelpers } from '../../config/supabase';
-import Card from '../../components/common/Card';
-import TrainAnimation from '../../components/common/TrainAnimation';
-import { COLORS, SPACING, RADIUS, FONT_SIZES } from '../../utils/constants';
-import agrasenImg from '../../../assets/agrasen.png';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../hooks/useAuth";
+import { dbHelpers } from "../../config/supabase";
+import Card from "../../components/common/Card";
+import TrainAnimation from "../../components/common/TrainAnimation";
+import { COLORS, SPACING, RADIUS, FONT_SIZES } from "../../utils/constants";
+import agrasenImg from "../../../assets/agrasen.png";
 
 const HomeScreen = ({ navigation }) => {
   const { profile, isVerified } = useAuth();
@@ -32,16 +32,16 @@ const HomeScreen = ({ navigation }) => {
   const loadHomeData = async () => {
     try {
       // Load announcements and featured events for train animation
-      const { data: events } = await dbHelpers.getEvents('all');
-      
+      const { data: events } = await dbHelpers.getEvents("all");
+
       if (events) {
         const now = new Date();
-        
+
         // Get announcements (visible and approved)
         const announcementsList = events
-          .filter(e => e.is_announcement && e.is_visible)
+          .filter((e) => e.is_announcement && e.is_visible)
           .slice(0, 5)
-          .map(e => ({
+          .map((e) => ({
             title: e.announcement_text || e.title,
             date: e.event_date,
             is_event: false,
@@ -49,14 +49,16 @@ const HomeScreen = ({ navigation }) => {
 
         // Get upcoming events (next 7 days, featured, visible, approved)
         const upcomingEventsList = events
-          .filter(e => {
+          .filter((e) => {
             if (!e.is_visible || !e.event_date) return false;
             const eventDate = new Date(e.event_date);
-            const daysDiff = Math.ceil((eventDate - now) / (1000 * 60 * 60 * 24));
+            const daysDiff = Math.ceil(
+              (eventDate - now) / (1000 * 60 * 60 * 24),
+            );
             return daysDiff >= 0 && daysDiff <= 7 && e.is_featured;
           })
           .slice(0, 5)
-          .map(e => ({
+          .map((e) => ({
             title: e.title,
             date: e.event_date,
             is_event: true,
@@ -68,18 +70,19 @@ const HomeScreen = ({ navigation }) => {
 
         // Get upcoming events for display (next 30 days)
         const allUpcoming = events
-          .filter(e => {
-            if (!e.is_visible || !e.event_date || e.is_announcement) return false;
+          .filter((e) => {
+            if (!e.is_visible || !e.event_date || e.is_announcement)
+              return false;
             const eventDate = new Date(e.event_date);
             return eventDate >= now;
           })
           .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
           .slice(0, 3);
-        
+
         setUpcomingEvents(allUpcoming);
       }
     } catch (error) {
-      console.error('Error loading home data:', error);
+      console.error("Error loading home data:", error);
     } finally {
       setLoading(false);
     }
@@ -93,66 +96,66 @@ const HomeScreen = ({ navigation }) => {
 
   const modules = [
     {
-      id: 'directory',
-      title: 'Directory',
-      icon: 'people',
+      id: "directory",
+      title: "Directory",
+      icon: "people",
       color: COLORS.primary,
-      screen: 'Directory',
-      description: 'Community members',
+      screen: "Directory",
+      description: "Community members",
       requiresVerification: false,
     },
     {
-      id: 'matrimonial',
-      title: 'Matrimonial',
-      icon: 'heart',
+      id: "matrimonial",
+      title: "Matrimonial",
+      icon: "heart",
       color: COLORS.error,
-      screen: 'Matrimonial',
-      description: 'Find matches',
+      screen: "Matrimonial",
+      description: "Find matches",
       requiresVerification: false,
     },
     {
-      id: 'events',
-      title: 'Events',
-      icon: 'calendar',
+      id: "events",
+      title: "Events",
+      icon: "calendar",
       color: COLORS.secondary,
-      screen: 'Events',
-      description: 'Programs & news',
+      screen: "Events",
+      description: "Programs & news",
       requiresVerification: false,
     },
     {
-      id: 'jobs',
-      title: 'Jobs',
-      icon: 'briefcase',
+      id: "jobs",
+      title: "Jobs",
+      icon: "briefcase",
       color: COLORS.info,
-      screen: 'Jobs',
-      description: 'Opportunities',
+      screen: "Jobs",
+      description: "Opportunities",
       requiresVerification: false,
     },
     {
-      id: 'blood',
-      title: 'Blood Donors',
-      icon: 'water',
+      id: "blood",
+      title: "Blood Donors",
+      icon: "water",
       color: COLORS.error,
-      screen: 'BloodDonors',
-      description: 'Emergency help',
+      screen: "BloodDonors",
+      description: "Emergency help",
       requiresVerification: false,
     },
     {
-      id: 'donations',
-      title: 'Donations',
-      icon: 'gift',
+      id: "donations",
+      title: "Donations",
+      icon: "gift",
       color: COLORS.success,
-      screen: 'Donations',
-      description: 'Support community',
+      screen: "Donations",
+      description: "Support community",
       requiresVerification: false,
     },
     {
-      id: 'postholders',
-      title: 'Office Bearers',
-      icon: 'ribbon',
+      id: "postholders",
+      title: "Office Bearers",
+      icon: "ribbon",
       color: COLORS.gold,
-      screen: 'PostHolders',
-      description: 'Leadership team',
+      screen: "PostHolders",
+      description: "Leadership team",
       requiresVerification: false,
     },
   ];
@@ -160,8 +163,8 @@ const HomeScreen = ({ navigation }) => {
   const handleModulePress = (module) => {
     if (module.requiresVerification && !isVerified) {
       Alert.alert(
-        'Verification Required',
-        'This feature is only available to verified members. Please contact admin for verification.'
+        "Verification Required",
+        "This feature is only available to verified members. Please contact admin for verification.",
       );
       return;
     }
@@ -170,31 +173,6 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.secondary]}
-        style={styles.headerGradient}
-      >
-        <View style={styles.headerContent}>
-          <View style={styles.welcomeSection}>
-            <Text style={styles.welcomeText}>Welcome,</Text>
-            <Text style={styles.nameText}>{profile?.full_name || 'Member'}</Text>
-          </View>
-          <View style={styles.badge}>
-            {isVerified ? (
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
-                <Text style={styles.verifiedText}>Verified</Text>
-              </View>
-            ) : (
-              <View style={styles.unverifiedBadge}>
-                <Ionicons name="time" size={16} color={COLORS.warning} />
-                <Text style={styles.unverifiedText}>Pending</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </LinearGradient>
-
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
@@ -209,19 +187,36 @@ const HomeScreen = ({ navigation }) => {
         )}
 
         {/* Quote Section */}
-              <Card style={[styles.quoteCard, { alignItems: 'center' }]} variant="elevated">
-              <Image
-                source={agrasenImg}
-                style={[styles.quoteImage, { width: 350, height: 350, marginBottom:-60 }]}
-              />
-              <Text style={[styles.quoteTitle, { fontSize: 20, textAlign: 'center', marginBottom:20 }]}>Maharaj Agrasen</Text>
-              <Text style={[styles.quoteText, { fontSize: 18, textAlign: 'center' }]}>
-                "एक ईंट, एक रुपया"
-              </Text>
-              <Text style={[styles.quoteSubtext, { fontSize: 14, textAlign: 'center' }]}>
-                Unity • Prosperity • Service
-              </Text>
-              </Card>
+        <Card
+          style={[styles.quoteCard, { alignItems: "center" }]}
+          variant="elevated"
+        >
+          <Image
+            source={agrasenImg}
+            style={[
+              styles.quoteImage,
+              { width: 350, height: 350, marginBottom: -60 },
+            ]}
+          />
+          <Text
+            style={[
+              styles.quoteTitle,
+              { fontSize: 20, textAlign: "center", marginBottom: 20 },
+            ]}
+          >
+            Maharaj Agrasen
+          </Text>
+          <Text
+            style={[styles.quoteText, { fontSize: 18, textAlign: "center" }]}
+          >
+            "एक ईंट, एक रुपया"
+          </Text>
+          <Text
+            style={[styles.quoteSubtext, { fontSize: 14, textAlign: "center" }]}
+          >
+            Unity • Prosperity • Service
+          </Text>
+        </Card>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Access</Text>
           <View style={styles.modulesGrid}>
@@ -232,11 +227,18 @@ const HomeScreen = ({ navigation }) => {
                 onPress={() => handleModulePress(module)}
                 activeOpacity={0.7}
               >
-                <View style={[styles.moduleIcon, { backgroundColor: module.color + '20' }]}>
+                <View
+                  style={[
+                    styles.moduleIcon,
+                    { backgroundColor: module.color + "20" },
+                  ]}
+                >
                   <Ionicons name={module.icon} size={28} color={module.color} />
                 </View>
                 <Text style={styles.moduleTitle}>{module.title}</Text>
-                <Text style={styles.moduleDescription}>{module.description}</Text>
+                <Text style={styles.moduleDescription}>
+                  {module.description}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -247,7 +249,7 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Upcoming Events</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Events')}>
+              <TouchableOpacity onPress={() => navigation.navigate("Events")}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -255,7 +257,9 @@ const HomeScreen = ({ navigation }) => {
               <Card
                 key={event.id}
                 style={styles.eventCard}
-                onPress={() => navigation.navigate('EventDetail', { eventId: event.id })}
+                onPress={() =>
+                  navigation.navigate("EventDetail", { eventId: event.id })
+                }
               >
                 <View style={styles.eventContent}>
                   <View style={styles.eventIconContainer}>
@@ -270,15 +274,19 @@ const HomeScreen = ({ navigation }) => {
                       {event.title}
                     </Text>
                     <Text style={styles.eventDate}>
-                      {new Date(event.event_date).toLocaleDateString('en-IN', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
+                      {new Date(event.event_date).toLocaleDateString("en-IN", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
                       })}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={COLORS.gray400}
+                  />
                 </View>
               </Card>
             ))}
@@ -331,20 +339,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
   },
   headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   welcomeSection: {
     flex: 1,
   },
   welcomeText: {
     fontSize: FONT_SIZES.sm,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: "rgba(255, 255, 255, 0.9)",
   },
   nameText: {
     fontSize: FONT_SIZES.xl,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.white,
     marginTop: SPACING.xs,
   },
@@ -352,8 +360,8 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.md,
   },
   verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.xs,
     backgroundColor: COLORS.white,
     paddingHorizontal: SPACING.md,
@@ -362,12 +370,12 @@ const styles = StyleSheet.create({
   },
   verifiedText: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.success,
   },
   unverifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.xs,
     backgroundColor: COLORS.white,
     paddingHorizontal: SPACING.md,
@@ -376,7 +384,7 @@ const styles = StyleSheet.create({
   },
   unverifiedText: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.warning,
   },
   content: {
@@ -384,79 +392,79 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.lg,
-    paddingBottom: SPACING['2xl'],
+    paddingBottom: SPACING["2xl"],
   },
   quoteCard: {
     marginBottom: SPACING.lg,
     backgroundColor: `${COLORS.primary}10`,
   },
   quoteHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
   quoteImage: {
     width: 40,
     height: 40,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   quotePlaceholder: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: COLORS.lightGray,
     borderRadius: 4,
   },
   quoteTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   quoteText: {
     fontSize: FONT_SIZES.xl,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray800,
     marginBottom: SPACING.sm,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    fontStyle: "italic",
+    textAlign: "center",
   },
   quoteSubtext: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray600,
-    textAlign: 'center',
+    textAlign: "center",
   },
   section: {
     marginBottom: SPACING.xl,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SPACING.md,
   },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.gray900,
   },
   seeAllText: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   modulesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: SPACING.md,
   },
   moduleCard: {
-    width: '47%',
+    width: "47%",
     backgroundColor: COLORS.white,
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
     borderColor: COLORS.gray200,
   },
@@ -464,28 +472,28 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: SPACING.md,
   },
   moduleTitle: {
     fontSize: FONT_SIZES.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray900,
     marginBottom: SPACING.xs,
-    textAlign: 'center',
+    textAlign: "center",
   },
   moduleDescription: {
     fontSize: FONT_SIZES.xs,
     color: COLORS.gray600,
-    textAlign: 'center',
+    textAlign: "center",
   },
   eventCard: {
     marginBottom: SPACING.md,
   },
   eventContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.md,
   },
   eventIconContainer: {
@@ -493,15 +501,15 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: `${COLORS.primary}20`,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   eventDetails: {
     flex: 1,
   },
   eventTitle: {
     fontSize: FONT_SIZES.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray900,
     marginBottom: SPACING.xs,
   },
@@ -514,21 +522,21 @@ const styles = StyleSheet.create({
   },
   statsTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.gray900,
     marginBottom: SPACING.lg,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
   statItem: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
-    fontSize: FONT_SIZES['2xl'],
-    fontWeight: 'bold',
+    fontSize: FONT_SIZES["2xl"],
+    fontWeight: "bold",
     color: COLORS.primary,
     marginBottom: SPACING.xs,
   },
@@ -541,7 +549,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gray200,
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: SPACING.xl,
   },
   footerText: {
