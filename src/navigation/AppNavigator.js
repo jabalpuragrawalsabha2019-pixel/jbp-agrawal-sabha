@@ -1,7 +1,7 @@
 // src/navigation/AppNavigator.js
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,7 +35,7 @@ const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
   const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+    <View style={{ flex: 1 }}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
@@ -66,9 +66,16 @@ const TabNavigator = () => {
             backgroundColor: COLORS.white,
             borderTopWidth: 1,
             borderTopColor: COLORS.gray200,
-            paddingBottom: Math.max(insets.bottom, 5), // Auto-adapts to nav bar
-            height: 40 + Math.max(insets.bottom, 0), // Dynamic height
+            paddingBottom: Math.max(insets.bottom, 10),
+            paddingTop: 4,
+            height: 56 + Math.max(insets.bottom, 10),
+            // Android shadow
             elevation: 8,
+            // iOS shadow
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
           },
           tabBarLabelStyle: {
             fontSize: 12,
@@ -83,28 +90,28 @@ const TabNavigator = () => {
           },
         })}
       >
-        <Tab.Screen 
-          name="Home" 
+        <Tab.Screen
+          name="Home"
           component={HomeScreen}
           options={{ title: 'JBP Agrawal Sabha' }}
         />
-        <Tab.Screen 
-          name="Directory" 
+        <Tab.Screen
+          name="Directory"
           component={DirectoryScreen}
           options={{ title: 'Directory' }}
         />
-        <Tab.Screen 
-          name="Matrimonial" 
+        <Tab.Screen
+          name="Matrimonial"
           component={MatrimonialListScreen}
           options={{ title: 'Matrimonial' }}
         />
-        <Tab.Screen 
-          name="More" 
+        <Tab.Screen
+          name="More"
           component={ProfileScreen}
           options={{ title: 'Profile' }}
         />
       </Tab.Navigator>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -165,7 +172,7 @@ const AppNavigator = () => {
         <Stack.Screen
           name="PhoneVerification"
           component={PhoneVerificationScreen}
-          options={{ 
+          options={{
             title: 'Verify Phone Number',
             headerLeft: null, // Prevent going back
           }}

@@ -1,5 +1,5 @@
 // src/screens/Events/EventsScreen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,19 +9,19 @@ import {
   Image,
   RefreshControl,
   SectionList,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { dbHelpers } from '../../config/supabase';
-import { useAuth } from '../../hooks/useAuth';
-import Card from '../../components/common/Card';
-import { COLORS, SPACING, RADIUS, FONT_SIZES } from '../../utils/constants';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { dbHelpers } from "../../config/supabase";
+import { useAuth } from "../../hooks/useAuth";
+import Card from "../../components/common/Card";
+import { COLORS, SPACING, RADIUS, FONT_SIZES } from "../../utils/constants";
 
 const EventsScreen = ({ navigation }) => {
   const { isVerified } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState('all'); // all, events, announcements
+  const [filter, setFilter] = useState("all"); // all, events, announcements
   const [sections, setSections] = useState([]);
 
   useEffect(() => {
@@ -30,35 +30,43 @@ const EventsScreen = ({ navigation }) => {
 
   const loadEvents = async () => {
     try {
-      const { data, error } = await dbHelpers.getEvents('all');
+      const { data, error } = await dbHelpers.getEvents("all");
       if (error) throw error;
-      
+
       if (data) {
-        let filteredData = data.filter(e => e.is_visible);
-        
+        let filteredData = data.filter((e) => e.is_visible);
+
         // Apply filter
-        if (filter === 'events') {
-          filteredData = filteredData.filter(e => !e.is_announcement);
-        } else if (filter === 'announcements') {
-          filteredData = filteredData.filter(e => e.is_announcement);
+        if (filter === "events") {
+          filteredData = filteredData.filter((e) => !e.is_announcement);
+        } else if (filter === "announcements") {
+          filteredData = filteredData.filter((e) => e.is_announcement);
         }
 
         // Organize into sections
         const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+
         const todayEvents = [];
         const upcomingEvents = [];
         const pastEvents = [];
         const announcements = [];
 
-        filteredData.forEach(event => {
+        filteredData.forEach((event) => {
           if (event.is_announcement) {
             announcements.push(event);
           } else if (event.event_date) {
             const eventDate = new Date(event.event_date);
-            const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
-            
+            const eventDay = new Date(
+              eventDate.getFullYear(),
+              eventDate.getMonth(),
+              eventDate.getDate(),
+            );
+
             if (eventDay.getTime() === today.getTime()) {
               todayEvents.push(event);
             } else if (eventDate >= now) {
@@ -70,38 +78,46 @@ const EventsScreen = ({ navigation }) => {
         });
 
         // Sort by date
-        todayEvents.sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
-        upcomingEvents.sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
-        pastEvents.sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
-        announcements.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        todayEvents.sort(
+          (a, b) => new Date(a.event_date) - new Date(b.event_date),
+        );
+        upcomingEvents.sort(
+          (a, b) => new Date(a.event_date) - new Date(b.event_date),
+        );
+        pastEvents.sort(
+          (a, b) => new Date(b.event_date) - new Date(a.event_date),
+        );
+        announcements.sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        );
 
         // Build sections
         const sectionsData = [];
-        
-        if (announcements.length > 0 && filter !== 'events') {
+
+        if (announcements.length > 0 && filter !== "events") {
           sectionsData.push({
-            title: '📢 Announcements',
+            title: "📢 Announcements",
             data: announcements,
           });
         }
 
-        if (todayEvents.length > 0 && filter !== 'announcements') {
+        if (todayEvents.length > 0 && filter !== "announcements") {
           sectionsData.push({
-            title: '🔔 Today',
+            title: "🔔 Today",
             data: todayEvents,
           });
         }
 
-        if (upcomingEvents.length > 0 && filter !== 'announcements') {
+        if (upcomingEvents.length > 0 && filter !== "announcements") {
           sectionsData.push({
-            title: '📅 Upcoming Events',
+            title: "📅 Upcoming Events",
             data: upcomingEvents,
           });
         }
 
-        if (pastEvents.length > 0 && filter !== 'announcements') {
+        if (pastEvents.length > 0 && filter !== "announcements") {
           sectionsData.push({
-            title: '📚 Past Events',
+            title: "📚 Past Events",
             data: pastEvents.slice(0, 10), // Show only last 10 past events
           });
         }
@@ -109,7 +125,7 @@ const EventsScreen = ({ navigation }) => {
         setSections(sectionsData);
       }
     } catch (error) {
-      console.error('Error loading events:', error);
+      console.error("Error loading events:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -122,26 +138,26 @@ const EventsScreen = ({ navigation }) => {
   };
 
   const getEventIcon = (event) => {
-    if (event.is_announcement) return 'megaphone';
-    
+    if (event.is_announcement) return "megaphone";
+
     const today = new Date();
     const eventDate = new Date(event.event_date);
-    
+
     if (eventDate.toDateString() === today.toDateString()) {
-      return 'alarm';
+      return "alarm";
     } else if (eventDate > today) {
-      return 'calendar';
+      return "calendar";
     } else {
-      return 'calendar-outline';
+      return "calendar-outline";
     }
   };
 
   const getEventColor = (event) => {
     if (event.is_announcement) return COLORS.info;
-    
+
     const today = new Date();
     const eventDate = new Date(event.event_date);
-    
+
     if (eventDate.toDateString() === today.toDateString()) {
       return COLORS.success;
     } else if (eventDate > today) {
@@ -153,9 +169,9 @@ const EventsScreen = ({ navigation }) => {
 
   const formatEventDate = (event) => {
     if (event.is_announcement) {
-      return `Posted ${new Date(event.created_at).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
+      return `Posted ${new Date(event.created_at).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
       })}`;
     }
 
@@ -165,23 +181,26 @@ const EventsScreen = ({ navigation }) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     if (eventDate.toDateString() === today.toDateString()) {
-      return `Today at ${eventDate.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
+      return `Today at ${eventDate.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
       })}`;
     } else if (eventDate.toDateString() === tomorrow.toDateString()) {
-      return `Tomorrow at ${eventDate.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
+      return `Tomorrow at ${eventDate.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
       })}`;
     } else {
-      return eventDate.toLocaleDateString('en-IN', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: eventDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-        hour: '2-digit',
-        minute: '2-digit',
+      return eventDate.toLocaleDateString("en-IN", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year:
+          eventDate.getFullYear() !== today.getFullYear()
+            ? "numeric"
+            : undefined,
+        hour: "2-digit",
+        minute: "2-digit",
       });
     }
   };
@@ -193,7 +212,9 @@ const EventsScreen = ({ navigation }) => {
     return (
       <Card
         style={styles.eventCard}
-        onPress={() => navigation.navigate('EventDetail', { eventId: event.id })}
+        onPress={() =>
+          navigation.navigate("EventDetail", { eventId: event.id })
+        }
       >
         {event.poster_url && !event.is_announcement && (
           <Image source={{ uri: event.poster_url }} style={styles.poster} />
@@ -206,15 +227,17 @@ const EventsScreen = ({ navigation }) => {
             </View>
             <View style={styles.eventTypeContainer}>
               <Text style={[styles.eventType, { color }]}>
-                {event.is_announcement ? 'ANNOUNCEMENT' : event.event_type?.toUpperCase() || 'EVENT'}
+                {event.is_announcement
+                  ? "ANNOUNCEMENT"
+                  : event.event_type?.toUpperCase() || "EVENT"}
               </Text>
             </View>
           </View>
 
           <Text style={styles.eventTitle} numberOfLines={3}>
-            {event.is_announcement 
-              ? (event.announcement_text || event.title || 'Announcement') 
-              : (event.title || 'Event')}
+            {event.is_announcement
+              ? event.announcement_text || event.title || "Announcement"
+              : event.title || "Event"}
           </Text>
 
           {!event.is_announcement && event.description && (
@@ -246,59 +269,49 @@ const EventsScreen = ({ navigation }) => {
       <Ionicons name="calendar-outline" size={64} color={COLORS.gray300} />
       <Text style={styles.emptyText}>No events found</Text>
       <Text style={styles.emptySubtext}>
-        {filter === 'announcements' 
-          ? 'No announcements at this time'
-          : 'Check back later for upcoming events'}
+        {filter === "announcements"
+          ? "No announcements at this time"
+          : "Check back later for upcoming events"}
       </Text>
     </View>
   );
+
+  const FILTERS = [
+    { key: "all", label: "All", icon: "apps" },
+    { key: "events", label: "Events", icon: "calendar" },
+    { key: "announcements", label: "News", icon: "megaphone" },
+  ];
 
   return (
     <View style={styles.container}>
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
-          onPress={() => setFilter('all')}
-        >
-          <Text
+        {FILTERS.map((f) => (
+          <TouchableOpacity
+            key={f.key}
             style={[
-              styles.filterButtonText,
-              filter === 'all' && styles.filterButtonTextActive,
+              styles.filterButton,
+              filter === f.key && styles.filterButtonActive,
             ]}
+            onPress={() => setFilter(f.key)}
+            activeOpacity={0.7}
           >
-            All
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'events' && styles.filterButtonActive]}
-          onPress={() => setFilter('events')}
-        >
-          <Text
-            style={[
-              styles.filterButtonText,
-              filter === 'events' && styles.filterButtonTextActive,
-            ]}
-          >
-            Events
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            filter === 'announcements' && styles.filterButtonActive,
-          ]}
-          onPress={() => setFilter('announcements')}
-        >
-          <Text
-            style={[
-              styles.filterButtonText,
-              filter === 'announcements' && styles.filterButtonTextActive,
-            ]}
-          >
-            Announcements
-          </Text>
-        </TouchableOpacity>
+            <Ionicons
+              name={f.icon}
+              size={16}
+              color={filter === f.key ? COLORS.white : COLORS.gray500}
+              style={{ marginRight: 5 }}
+            />
+            <Text
+              style={[
+                styles.filterButtonText,
+                filter === f.key && styles.filterButtonTextActive,
+              ]}
+            >
+              {f.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <SectionList
@@ -324,28 +337,31 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   filterContainer: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-    padding: SPACING.lg,
+    flexDirection: "row",
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
   },
   filterButton: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.gray300,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.gray100,
   },
   filterButtonActive: {
     backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
   },
   filterButtonText: {
-    fontSize: FONT_SIZES.sm,
-    fontWeight: '600',
-    color: COLORS.gray700,
+    fontSize: FONT_SIZES.xs,
+    fontWeight: "700",
+    color: COLORS.gray500,
   },
   filterButtonTextActive: {
     color: COLORS.white,
@@ -361,47 +377,47 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.gray900,
   },
   eventCard: {
     marginBottom: SPACING.lg,
-    overflow: 'hidden',
+    overflow: "hidden",
     padding: 0,
   },
   poster: {
-    width: '100%',
+    width: "100%",
     height: 200,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   eventContent: {
     padding: SPACING.md,
   },
   eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SPACING.md,
   },
   iconBadge: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   eventTypeContainer: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   eventType: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
   eventTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.gray900,
     marginBottom: SPACING.sm,
   },
@@ -412,13 +428,13 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   eventFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   eventDateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.xs,
   },
   eventDateText: {
@@ -426,13 +442,13 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
   },
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING['2xl'],
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: SPACING["2xl"],
   },
   emptyText: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray500,
     marginTop: SPACING.md,
   },

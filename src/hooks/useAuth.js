@@ -1,6 +1,6 @@
 // src/hooks/useAuth.js
-import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase, authHelpers, dbHelpers } from '../config/supabase';
+import { useState, useEffect, createContext, useContext } from "react";
+import { supabase, authHelpers, dbHelpers } from "../config/supabase";
 
 const AuthContext = createContext({});
 
@@ -17,14 +17,14 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes. Do not block UI while loading profile from DB.
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth event:', event);
+        console.log("Auth event:", event);
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
           // Load profile asynchronously; don't await here to avoid blocking the UI
-          loadUserProfile(session.user.id).catch(err => {
-            console.error('Async loadUserProfile error:', err);
+          loadUserProfile(session.user.id).catch((err) => {
+            console.error("Async loadUserProfile error:", err);
           });
         } else {
           setProfile(null);
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
         // Unblock UI immediately; profile will update when loaded
         setLoading(false);
-      }
+      },
     );
 
     return () => {
@@ -50,10 +50,12 @@ export const AuthProvider = ({ children }) => {
 
       if (session?.user) {
         // Do not block startup on profile load; run it asynchronously
-        loadUserProfile(session.user.id).catch(err => console.error('Initial loadUserProfile error:', err));
+        loadUserProfile(session.user.id).catch((err) =>
+          console.error("Initial loadUserProfile error:", err),
+        );
       }
     } catch (error) {
-      console.error('Error loading session:', error);
+      console.error("Error loading session:", error);
     } finally {
       setLoading(false);
     }
@@ -61,108 +63,113 @@ export const AuthProvider = ({ children }) => {
 
   const loadUserProfile = async (userId) => {
     try {
-      console.log('Loading profile for user:', userId);
+      console.log("Loading profile for user:", userId);
       const { data, error } = await dbHelpers.getUserProfile(userId);
-      
-      if (error && error.code !== 'PGRST116') {
+
+      if (error && error.code !== "PGRST116") {
         // PGRST116 = no rows returned (user doesn't have profile yet)
-        console.error('Error loading profile:', error);
+        console.error("Error loading profile:", error);
       } else if (data) {
-        console.log('Profile loaded:', data.full_name, data.phone);
+        console.log("Profile loaded:", data.full_name, data.phone);
         setProfile(data);
       } else {
-        console.log('No profile found for user');
+        console.log("No profile found for user");
         setProfile(null);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error("Error loading profile:", error);
       setProfile(null);
     }
   };
 
   const signInWithGoogle = async (idToken) => {
     // This method is no longer used - OAuth handled in LoginScreen
-    return { data: null, error: new Error('Use OAuth flow in LoginScreen') };
+    return { data: null, error: new Error("Use OAuth flow in LoginScreen") };
   };
 
   const signOut = async () => {
     try {
-      console.log('=== SIGN OUT STARTED ===');
-      
+      console.log("=== SIGN OUT STARTED ===");
+
       // First, clear auth state
       setUser(null);
       setProfile(null);
       setSession(null);
-      
+
       // Sign out from Supabase
       const { error } = await authHelpers.signOut();
       if (error) {
-        console.error('Supabase sign out error:', error);
+        console.error("Supabase sign out error:", error);
       }
-      
+
       // CRITICAL: Clear all AsyncStorage auth data
       try {
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-        console.log('Clearing AsyncStorage...');
-        
+        const AsyncStorage =
+          require("@react-native-async-storage/async-storage").default;
+        console.log("Clearing AsyncStorage...");
+
         // Get all keys
         const keys = await AsyncStorage.getAllKeys();
-        console.log('AsyncStorage keys:', keys);
-        
+        console.log("AsyncStorage keys:", keys);
+
         // Remove Supabase auth keys
-        const authKeys = keys.filter(key => 
-          key.includes('supabase.auth.token') || 
-          key.includes('supabase-auth-token') ||
-          key.includes('@supabase')
+        const authKeys = keys.filter(
+          (key) =>
+            key.includes("supabase.auth.token") ||
+            key.includes("supabase-auth-token") ||
+            key.includes("@supabase"),
         );
-        
+
         if (authKeys.length > 0) {
-          console.log('Removing auth keys:', authKeys);
+          console.log("Removing auth keys:", authKeys);
           await AsyncStorage.multiRemove(authKeys);
         }
-        
-        console.log('AsyncStorage cleared successfully');
+
+        console.log("AsyncStorage cleared successfully");
       } catch (storageError) {
-        console.error('Error clearing AsyncStorage:', storageError);
+        console.error("Error clearing AsyncStorage:", storageError);
       }
-      
-      console.log('=== SIGN OUT COMPLETED ===');
+
+      console.log("=== SIGN OUT COMPLETED ===");
       return { error: null };
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       return { error };
     }
   };
 
   const updateProfile = async (updates) => {
     try {
-      if (!user) throw new Error('No user logged in');
+      if (!user) throw new Error("No user logged in");
 
-      const { data, error } = await dbHelpers.upsertUserProfile(user.id, updates);
+      const { data, error } = await dbHelpers.upsertUserProfile(
+        user.id,
+        updates,
+      );
       if (error) throw error;
 
       setProfile(data);
       return { data, error: null };
     } catch (error) {
-      console.error('Update profile error:', error);
+      console.error("Update profile error:", error);
       return { data: null, error };
     }
   };
 
   const checkPhoneVerification = async (phone) => {
     try {
-      console.log('Starting phone verification for:', phone);
+      console.log("Starting phone verification for:", phone);
       const { data, error } = await dbHelpers.checkApprovedMember(phone);
-      
+
       // Even if there's an error, we allow signup as unverified
       if (error) {
-        console.log('Phone check error (allowing unverified):', error);
+        console.log("Phone check error (allowing unverified):", error);
         return { data: null, error: null };
       }
-      
+
       return { data, error: null };
     } catch (error) {
-      console.error('Phone verification error:', error);
+      console.error("Phone verification error:", error);
       // Always allow signup, just as unverified
       return { data: null, error: null };
     }
@@ -170,36 +177,44 @@ export const AuthProvider = ({ children }) => {
 
   const createUserProfile = async (profileData) => {
     try {
-      if (!user) throw new Error('No user logged in');
+      if (!user) throw new Error("No user logged in");
 
-      console.log('Creating profile for user:', user.id);
-      console.log('Profile data:', profileData);
+      console.log("Creating profile for user:", user.id);
+      console.log("Profile data:", profileData);
 
       const profilePayload = {
         google_id: user.user_metadata?.sub,
         email: user.email,
         phone: profileData.phone,
         full_name: profileData.full_name,
+        gender: profileData.gender || null,
+        guardian_type: profileData.guardian_type || "father",
+        guardian_name: profileData.guardian_name || null,
         city: profileData.city,
+        address: profileData.address || null,
+        pincode: profileData.pincode || null,
         occupation: profileData.occupation || null,
         photo_url: profileData.photo_url || null,
         is_verified: profileData.is_verified || false,
       };
 
-      console.log('Payload to send:', profilePayload);
+      console.log("Payload to send:", profilePayload);
 
-      const { data, error } = await dbHelpers.upsertUserProfile(user.id, profilePayload);
+      const { data, error } = await dbHelpers.upsertUserProfile(
+        user.id,
+        profilePayload,
+      );
 
       if (error) {
-        console.error('Profile creation failed:', error);
+        console.error("Profile creation failed:", error);
         throw error;
       }
 
-      console.log('Profile created successfully:', data);
+      console.log("Profile created successfully:", data);
       setProfile(data);
       return { data, error: null };
     } catch (error) {
-      console.error('Create profile error:', error);
+      console.error("Create profile error:", error);
       return { data: null, error };
     }
   };
@@ -236,7 +251,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
