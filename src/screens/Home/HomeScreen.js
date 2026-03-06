@@ -595,7 +595,6 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 6,
-    marginBottom: SPACING.sm,
   },
   statsBadgeText: {
     fontSize: FONT_SIZES.xs,
