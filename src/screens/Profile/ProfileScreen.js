@@ -71,14 +71,49 @@ const ProfileScreen = () => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
 
       if (!result.canceled) {
-        setFormData({ ...formData, photo_url: result.assets[0].uri });
+        const localUri = result.assets[0].uri;
+        // Immediately show the picked image as preview
+        setFormData((prev) => ({ ...prev, photo_url: localUri }));
+
+        // Auto-upload to Cloudinary and persist
+        try {
+          setLoading(true);
+          const uploadResult = await uploadImageToCloudinary(
+            localUri,
+            "profiles",
+          );
+          if (!uploadResult.success) throw new Error(uploadResult.error);
+
+          // Merge with full profile so upsert doesn't wipe other fields
+          const { error } = await updateProfile({
+            ...profile,
+            photo_url: uploadResult.url,
+          });
+          if (error) throw error;
+
+          setFormData((prev) => ({ ...prev, photo_url: uploadResult.url }));
+          Alert.alert("Success", "Profile photo updated!");
+        } catch (uploadError) {
+          console.error("Photo upload error:", uploadError);
+          Alert.alert(
+            "Error",
+            "Failed to update photo: " + uploadError.message,
+          );
+          // Revert preview on failure
+          setFormData((prev) => ({
+            ...prev,
+            photo_url: profile?.photo_url || "",
+          }));
+        } finally {
+          setLoading(false);
+        }
       }
     } catch (error) {
       console.error("Image pick error:", error);
@@ -202,27 +237,26 @@ const ProfileScreen = () => {
       {/* Profile Header */}
       <Card style={styles.headerCard} variant="elevated">
         <View style={styles.profileHeader}>
-          <TouchableOpacity
-            style={styles.avatarContainer}
-            onPress={editing ? handleImagePick : undefined}
-            disabled={!editing}
-          >
-            {formData.photo_url ? (
-              <Image
-                source={{ uri: formData.photo_url }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={60} color={COLORS.gray400} />
-              </View>
-            )}
-            {editing && (
+          <View style={styles.avatarSection}>
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={handleImagePick}
+            >
+              {formData.photo_url ? (
+                <Image
+                  source={{ uri: formData.photo_url }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Ionicons name="person" size={60} color={COLORS.gray400} />
+                </View>
+              )}
               <View style={styles.cameraIcon}>
                 <Ionicons name="camera" size={20} color={COLORS.white} />
               </View>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.headerInfo}>
             <Text style={styles.name}>{profile?.full_name || "User"}</Text>
@@ -549,6 +583,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: SPACING.lg,
   },
+  avatarSection: {
+    alignItems: "center",
+  },
   avatarContainer: {
     position: "relative",
   },
@@ -581,6 +618,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: COLORS.white,
+  },
+  changePhotoText: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.primary,
+    marginTop: 4,
+    marginBottom: 4,
   },
   headerInfo: {
     flex: 1,
