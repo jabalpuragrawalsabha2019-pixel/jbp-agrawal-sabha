@@ -1,7 +1,7 @@
 // src/config/supabase.js
-import { createClient } from '@supabase/supabase-js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
+import { createClient } from "@supabase/supabase-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 
 const supabaseUrl = Constants.expoConfig.extra.supabaseUrl;
 const supabaseAnonKey = Constants.expoConfig.extra.supabaseAnonKey;
@@ -66,13 +66,13 @@ export const dbHelpers = {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `=== START PHONE CHECK (Attempt ${attempt}/${maxRetries}) ===`
+          `=== START PHONE CHECK (Attempt ${attempt}/${maxRetries}) ===`,
         );
-        console.log('Input phone:', phone);
+        console.log("Input phone:", phone);
 
         // Clean phone number (remove any spaces or special chars)
-        const cleanPhone = phone.replace(/\D/g, '');
-        console.log('Clean phone:', cleanPhone);
+        const cleanPhone = phone.replace(/\D/g, "");
+        console.log("Clean phone:", cleanPhone);
 
         // Increase timeout on retry (first: 20s, second: 40s)
         const timeoutMs = attempt === 1 ? 20000 : 40000;
@@ -81,15 +81,15 @@ export const dbHelpers = {
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(
             () => reject(new Error(`Phone check timeout after ${timeoutMs}ms`)),
-            timeoutMs
+            timeoutMs,
           );
         });
 
-        console.log('Searching for phone:', cleanPhone);
+        console.log("Searching for phone:", cleanPhone);
         const phoneQuery = supabase
-          .from('approved_members')
-          .select('*')
-          .eq('phone', cleanPhone)
+          .from("approved_members")
+          .select("*")
+          .eq("phone", cleanPhone)
           .maybeSingle();
 
         const result = await Promise.race([phoneQuery, timeoutPromise]);
@@ -103,7 +103,7 @@ export const dbHelpers = {
         console.log(`=== END PHONE CHECK (attempt ${attempt}) ===`);
 
         // If no match found, return null data (not an error)
-        if (error && error.code === 'PGRST116') {
+        if (error && error.code === "PGRST116") {
           return { data: null, error: null };
         }
 
@@ -128,54 +128,56 @@ export const dbHelpers = {
       } catch (error) {
         console.error(
           `checkApprovedMember exception on attempt ${attempt}:`,
-          error
+          error,
         );
         lastError = error;
 
         // If this is not the last attempt, retry
         if (attempt < maxRetries) {
           console.log(
-            `Retrying phone check after exception (attempt ${attempt + 1})...`
+            `Retrying phone check after exception (attempt ${attempt + 1})...`,
           );
           // Small delay before retry
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }
 
-        console.log('=== END PHONE CHECK (exception) ===');
+        console.log("=== END PHONE CHECK (exception) ===");
         // Return null data on any error (allows unverified signup)
         return { data: null, error: null };
       }
     }
 
     // Should never reach here, but just in case
-    console.error('All retry attempts failed:', lastError);
+    console.error("All retry attempts failed:", lastError);
     return { data: null, error: null };
   },
 
   // Create or update user profile
   upsertUserProfile: async (userId, profileData) => {
     try {
-      console.log('upsertUserProfile called with:', { userId, profileData });
+      console.log("upsertUserProfile called with:", { userId, profileData });
 
       // Validate required fields
       if (!userId) {
-        throw new Error('User ID is required');
+        throw new Error("User ID is required");
       }
 
       if (!profileData.phone) {
-        throw new Error('Phone number is required');
+        throw new Error("Phone number is required");
       }
 
       // Build the final data object
       const dataToUpdate = {
         id: userId,
         phone: profileData.phone.trim(),
-        full_name: profileData.full_name?.trim() || '',
+        full_name: profileData.full_name?.trim() || "",
         gender: profileData.gender || null,
-        guardian_type: profileData.guardian_type || 'father',
+        guardian_type: profileData.guardian_type || "father",
         guardian_name: profileData.guardian_name?.trim() || null,
-        city: profileData.city?.trim() || '',
+        city: profileData.city?.trim() || "",
+        address: profileData.address?.trim() || null,
+        pincode: profileData.pincode?.trim() || null,
         occupation: profileData.occupation?.trim() || null,
         is_verified: profileData.is_verified || false,
         photo_url: profileData.photo_url || null,
@@ -184,31 +186,31 @@ export const dbHelpers = {
         updated_at: new Date().toISOString(),
       };
 
-      console.log('Final data to upsert:', dataToUpdate);
+      console.log("Final data to upsert:", dataToUpdate);
 
       // Use a safer upsert pattern: omit explicit `returning` option (client handles it)
       // and use `maybeSingle()` to avoid throwing if the response isn't exactly one row.
       const { data, error } = await supabase
-        .from('users')
-        .upsert(dataToUpdate, { onConflict: 'id' })
+        .from("users")
+        .upsert(dataToUpdate, { onConflict: "id" })
         .select()
         .maybeSingle();
 
-      console.log('Upsert result:', { success: !!data, error: error?.message });
+      console.log("Upsert result:", { success: !!data, error: error?.message });
 
       if (error) {
-        console.error('upsertUserProfile error:', error);
+        console.error("upsertUserProfile error:", error);
         throw error;
       }
 
       if (!data) {
-        throw new Error('No data returned from upsert');
+        throw new Error("No data returned from upsert");
       }
 
-      console.log('Profile created/updated successfully');
+      console.log("Profile created/updated successfully");
       return { data, error: null };
     } catch (error) {
-      console.error('upsertUserProfile error:', error);
+      console.error("upsertUserProfile error:", error);
       return { data: null, error };
     }
   },
@@ -216,17 +218,17 @@ export const dbHelpers = {
   // Get user profile
   getUserProfile: async (userId) => {
     try {
-      console.log('Getting user profile for:', userId);
+      console.log("Getting user profile for:", userId);
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
+        .from("users")
+        .select("*")
+        .eq("id", userId)
         .maybeSingle();
 
-      console.log('Profile query result:', { data, error });
+      console.log("Profile query result:", { data, error });
       return { data, error };
     } catch (error) {
-      console.error('getUserProfile error:', error);
+      console.error("getUserProfile error:", error);
       return { data: null, error };
     }
   },
@@ -235,10 +237,10 @@ export const dbHelpers = {
   getVerifiedUsers: async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('is_verified', true)
-        .order('full_name', { ascending: true });
+        .from("users")
+        .select("*")
+        .eq("is_verified", true)
+        .order("full_name", { ascending: true });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -249,15 +251,15 @@ export const dbHelpers = {
   getMatrimonialProfiles: async (filters = {}) => {
     try {
       let query = supabase
-        .from('matrimonial_profiles')
-        .select('*, users!matrimonial_profiles_user_id_fkey(*)')
-        .eq('status', 'approved');
+        .from("matrimonial_profiles")
+        .select("*, users!matrimonial_profiles_user_id_fkey(*)")
+        .eq("status", "approved");
 
-      if (filters.gender) query = query.eq('gender', filters.gender);
-      if (filters.city) query = query.eq('city', filters.city);
-      if (filters.gotra) query = query.eq('gotra', filters.gotra);
+      if (filters.gender) query = query.eq("gender", filters.gender);
+      if (filters.city) query = query.eq("city", filters.city);
+      if (filters.gotra) query = query.eq("gotra", filters.gotra);
 
-      const { data, error } = await query.order('created_at', {
+      const { data, error } = await query.order("created_at", {
         ascending: false,
       });
       return { data, error };
@@ -269,7 +271,7 @@ export const dbHelpers = {
   createMatrimonialProfile: async (profileData) => {
     try {
       const { data, error } = await supabase
-        .from('matrimonial_profiles')
+        .from("matrimonial_profiles")
         .insert(profileData)
         .select()
         .single();
@@ -280,21 +282,21 @@ export const dbHelpers = {
   },
 
   // Events functions - UPDATED for announcements
-  getEvents: async (type = 'all') => {
+  getEvents: async (type = "all") => {
     try {
       let query = supabase
-        .from('events')
-        .select('*, users!events_posted_by_fkey(*)')
-        .eq('status', 'approved')
-        .eq('is_visible', true);
+        .from("events")
+        .select("*, users!events_posted_by_fkey(*)")
+        .eq("status", "approved")
+        .eq("is_visible", true);
 
-      if (type === 'events') {
-        query = query.eq('is_announcement', false);
-      } else if (type === 'announcements') {
-        query = query.eq('is_announcement', true);
+      if (type === "events") {
+        query = query.eq("is_announcement", false);
+      } else if (type === "announcements") {
+        query = query.eq("is_announcement", true);
       }
 
-      const { data, error } = await query.order('event_date', {
+      const { data, error } = await query.order("event_date", {
         ascending: false,
         nullsFirst: false,
       });
@@ -307,7 +309,7 @@ export const dbHelpers = {
   createEvent: async (eventData) => {
     try {
       const { data, error } = await supabase
-        .from('events')
+        .from("events")
         .insert(eventData)
         .select()
         .single();
@@ -321,10 +323,10 @@ export const dbHelpers = {
   getJobs: async () => {
     try {
       const { data, error } = await supabase
-        .from('jobs')
-        .select('*, users!jobs_posted_by_fkey(*)')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
+        .from("jobs")
+        .select("*, users!jobs_posted_by_fkey(*)")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -334,7 +336,7 @@ export const dbHelpers = {
   createJob: async (jobData) => {
     try {
       const { data, error } = await supabase
-        .from('jobs')
+        .from("jobs")
         .insert(jobData)
         .select()
         .single();
@@ -348,14 +350,14 @@ export const dbHelpers = {
   getBloodDonors: async (bloodGroup = null, city = null) => {
     try {
       let query = supabase
-        .from('blood_donors')
-        .select('*, users!blood_donors_user_id_fkey(*)')
-        .eq('is_available', true);
+        .from("blood_donors")
+        .select("*, users!blood_donors_user_id_fkey(*)")
+        .eq("is_available", true);
 
-      if (bloodGroup) query = query.eq('blood_group', bloodGroup);
-      if (city) query = query.eq('city', city);
+      if (bloodGroup) query = query.eq("blood_group", bloodGroup);
+      if (city) query = query.eq("city", city);
 
-      const { data, error } = await query.order('created_at', {
+      const { data, error } = await query.order("created_at", {
         ascending: false,
       });
       return { data, error };
@@ -367,7 +369,7 @@ export const dbHelpers = {
   registerBloodDonor: async (donorData) => {
     try {
       const { data, error } = await supabase
-        .from('blood_donors')
+        .from("blood_donors")
         .insert(donorData)
         .select()
         .single();
@@ -381,9 +383,9 @@ export const dbHelpers = {
   getDonations: async () => {
     try {
       const { data, error } = await supabase
-        .from('donations')
-        .select('*')
-        .order('donated_at', { ascending: false });
+        .from("donations")
+        .select("*")
+        .order("donated_at", { ascending: false });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -393,7 +395,7 @@ export const dbHelpers = {
   recordDonation: async (donationData) => {
     try {
       const { data, error } = await supabase
-        .from('donations')
+        .from("donations")
         .insert(donationData)
         .select()
         .single();
@@ -407,9 +409,9 @@ export const dbHelpers = {
   getPostHolders: async () => {
     try {
       const { data, error } = await supabase
-        .from('post_holders')
-        .select('*, users!post_holders_user_id_fkey(*)')
-        .order('display_order', { ascending: true });
+        .from("post_holders")
+        .select("*, users!post_holders_user_id_fkey(*)")
+        .order("display_order", { ascending: true });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -420,7 +422,7 @@ export const dbHelpers = {
   createContactRequest: async (profileId, requesterId) => {
     try {
       const { data, error } = await supabase
-        .from('contact_requests')
+        .from("contact_requests")
         .insert({
           profile_id: profileId,
           requester_id: requesterId,
@@ -442,7 +444,7 @@ export const storageHelpers = {
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(path, file, {
-          cacheControl: '3600',
+          cacheControl: "3600",
           upsert: false,
         });
       return { data, error };

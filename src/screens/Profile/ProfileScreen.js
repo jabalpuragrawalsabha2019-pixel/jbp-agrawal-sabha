@@ -35,6 +35,8 @@ const ProfileScreen = () => {
     guardian_type: profile?.guardian_type || "father",
     guardian_name: profile?.guardian_name || "",
     city: profile?.city || "",
+    address: profile?.address || "",
+    pincode: profile?.pincode || "",
     occupation: profile?.occupation || "",
     photo_url: profile?.photo_url || "",
   });
@@ -48,6 +50,8 @@ const ProfileScreen = () => {
         guardian_type: profile.guardian_type || "father",
         guardian_name: profile.guardian_name || "",
         city: profile.city || "",
+        address: profile.address || "",
+        pincode: profile.pincode || "",
         occupation: profile.occupation || "",
         photo_url: profile.photo_url || "",
       });
@@ -121,6 +125,8 @@ const ProfileScreen = () => {
         phone: formData.phone ?? profile?.phone,
         email: formData.email ?? profile?.email,
         city: formData.city,
+        address: formData.address,
+        pincode: formData.pincode,
         occupation: formData.occupation,
         photo_url: photoUrl,
       });
@@ -132,6 +138,8 @@ const ProfileScreen = () => {
         phone: formData.phone ?? profile?.phone,
         email: formData.email ?? profile?.email,
         city: formData.city,
+        address: formData.address,
+        pincode: formData.pincode,
         occupation: formData.occupation,
         photo_url: photoUrl,
       });
@@ -171,6 +179,8 @@ const ProfileScreen = () => {
                 guardian_type: "father",
                 guardian_name: "",
                 city: "",
+                address: "",
+                pincode: "",
                 occupation: "",
                 photo_url: "",
               });
@@ -260,6 +270,8 @@ const ProfileScreen = () => {
                   guardian_type: profile?.guardian_type || "father",
                   guardian_name: profile?.guardian_name || "",
                   city: profile?.city || "",
+                  address: profile?.address || "",
+                  pincode: profile?.pincode || "",
                   occupation: profile?.occupation || "",
                   photo_url: profile?.photo_url || "",
                 });
@@ -430,6 +442,44 @@ const ProfileScreen = () => {
             />
           ) : (
             <Text style={styles.value}>{profile?.city || "-"}</Text>
+          )}
+        </View>
+
+        <View style={styles.infoGroup}>
+          <Text style={styles.label}>Address</Text>
+          {editing ? (
+            <TextInput
+              style={[styles.input, { height: 70, textAlignVertical: "top" }]}
+              value={formData.address}
+              onChangeText={(text) =>
+                setFormData({ ...formData, address: text })
+              }
+              placeholder="Enter your full address"
+              placeholderTextColor={COLORS.gray400}
+              multiline
+              numberOfLines={3}
+            />
+          ) : (
+            <Text style={styles.value}>{profile?.address || "-"}</Text>
+          )}
+        </View>
+
+        <View style={styles.infoGroup}>
+          <Text style={styles.label}>Pincode</Text>
+          {editing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.pincode}
+              onChangeText={(text) =>
+                setFormData({ ...formData, pincode: text })
+              }
+              placeholder="Enter pincode"
+              placeholderTextColor={COLORS.gray400}
+              keyboardType="numeric"
+              maxLength={6}
+            />
+          ) : (
+            <Text style={styles.value}>{profile?.pincode || "-"}</Text>
           )}
         </View>
 

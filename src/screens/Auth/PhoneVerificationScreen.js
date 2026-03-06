@@ -45,6 +45,8 @@ const PhoneVerificationScreen = () => {
     guardian_type: "father",
     guardian_name: "",
     city: "",
+    address: "",
+    pincode: "",
     occupation: "",
   });
 
@@ -64,6 +66,8 @@ const PhoneVerificationScreen = () => {
       guardian_type: "father",
       guardian_name: "",
       city: "",
+      address: "",
+      pincode: "",
       occupation: "",
     });
   }, [user]);
@@ -151,6 +155,8 @@ const PhoneVerificationScreen = () => {
           guardian_type: "father",
           guardian_name: "",
           city: data.city || "",
+          address: "",
+          pincode: "",
           occupation: "",
         });
         Alert.alert(
@@ -214,6 +220,8 @@ const PhoneVerificationScreen = () => {
         guardian_type: additionalInfo.guardian_type || "father",
         guardian_name: additionalInfo.guardian_name.trim() || null,
         city: additionalInfo.city.trim(),
+        address: additionalInfo.address.trim() || null,
+        pincode: additionalInfo.pincode.trim() || null,
         occupation: additionalInfo.occupation.trim() || null,
         is_verified: verificationResult?.verified || false,
         photo_url:
@@ -480,6 +488,41 @@ const PhoneVerificationScreen = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Address</Text>
+                  <TextInput
+                    style={[
+                      styles.inputField,
+                      { height: 70, textAlignVertical: "top" },
+                    ]}
+                    placeholder="Enter your full address"
+                    placeholderTextColor={COLORS.gray400}
+                    value={additionalInfo.address}
+                    onChangeText={(text) =>
+                      setAdditionalInfo({ ...additionalInfo, address: text })
+                    }
+                    editable={!loading}
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Pincode</Text>
+                  <TextInput
+                    style={styles.inputField}
+                    placeholder="Enter pincode"
+                    placeholderTextColor={COLORS.gray400}
+                    value={additionalInfo.pincode}
+                    onChangeText={(text) =>
+                      setAdditionalInfo({ ...additionalInfo, pincode: text })
+                    }
+                    editable={!loading}
+                    keyboardType="numeric"
+                    maxLength={6}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
                   <Text style={styles.label}>Occupation</Text>
                   <TextInput
                     style={styles.inputField}
@@ -718,6 +761,41 @@ const PhoneVerificationScreen = () => {
                       setAdditionalInfo({ ...additionalInfo, city: text })
                     }
                     editable={!loading}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Address</Text>
+                  <TextInput
+                    style={[
+                      styles.inputField,
+                      { height: 70, textAlignVertical: "top" },
+                    ]}
+                    placeholder="Enter your full address"
+                    placeholderTextColor={COLORS.gray400}
+                    value={additionalInfo.address}
+                    onChangeText={(text) =>
+                      setAdditionalInfo({ ...additionalInfo, address: text })
+                    }
+                    editable={!loading}
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Pincode</Text>
+                  <TextInput
+                    style={styles.inputField}
+                    placeholder="Enter pincode"
+                    placeholderTextColor={COLORS.gray400}
+                    value={additionalInfo.pincode}
+                    onChangeText={(text) =>
+                      setAdditionalInfo({ ...additionalInfo, pincode: text })
+                    }
+                    editable={!loading}
+                    keyboardType="numeric"
+                    maxLength={6}
                   />
                 </View>
 

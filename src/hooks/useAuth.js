@@ -191,6 +191,8 @@ export const AuthProvider = ({ children }) => {
         guardian_type: profileData.guardian_type || "father",
         guardian_name: profileData.guardian_name || null,
         city: profileData.city,
+        address: profileData.address || null,
+        pincode: profileData.pincode || null,
         occupation: profileData.occupation || null,
         photo_url: profileData.photo_url || null,
         is_verified: profileData.is_verified || false,
