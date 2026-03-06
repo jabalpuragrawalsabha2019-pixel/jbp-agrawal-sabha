@@ -294,7 +294,6 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.statsBadge}>
               <Text style={styles.statsBadgeText}>हमारा समाज</Text>
             </View>
-            <Text style={styles.statsTitle}>Community Snapshot</Text>
           </View>
           <Text style={styles.statsSubtitle}>Our Community at a Glance</Text>
           <View style={styles.statsList}>
