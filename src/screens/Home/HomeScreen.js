@@ -291,8 +291,13 @@ const HomeScreen = ({ navigation }) => {
         {/* Community Stats */}
         <Card style={styles.statsCard} variant="elevated">
           <View style={styles.statsHeader}>
-            <View style={styles.statsBadge}>
-              <Text style={styles.statsBadgeText}>हमारा समाज</Text>
+            <View style={styles.statsHeaderTopRow}>
+              <View style={styles.statsBadge}>
+                <Text style={styles.statsBadgeText}>हमारा समाज</Text>
+              </View>
+              <View style={styles.statsYearChip}>
+                <Text style={styles.statsYearText}>2026</Text>
+              </View>
             </View>
           </View>
           <Text style={styles.statsSubtitle}>Our Community at a Glance</Text>
@@ -302,8 +307,8 @@ const HomeScreen = ({ navigation }) => {
                 <Ionicons name="people" size={18} color={COLORS.primaryDark} />
               </View>
               <View style={styles.statTextBlock}>
-                <Text style={styles.statValue}>5,000+</Text>
                 <Text style={styles.statLabel}>Members</Text>
+                <Text style={styles.statValue}>5,000+</Text>
               </View>
             </View>
 
@@ -318,8 +323,8 @@ const HomeScreen = ({ navigation }) => {
                 />
               </View>
               <View style={styles.statTextBlock}>
-                <Text style={styles.statValue}>100+</Text>
                 <Text style={styles.statLabel}>Events Held</Text>
+                <Text style={styles.statValue}>100+</Text>
               </View>
             </View>
 
@@ -330,8 +335,8 @@ const HomeScreen = ({ navigation }) => {
                 <Ionicons name="heart" size={18} color={COLORS.accent} />
               </View>
               <View style={styles.statTextBlock}>
-                <Text style={styles.statValue}>500+</Text>
                 <Text style={styles.statLabel}>Marriages</Text>
+                <Text style={styles.statValue}>500+</Text>
               </View>
             </View>
           </View>
@@ -569,10 +574,18 @@ const styles = StyleSheet.create({
     borderColor: `${COLORS.primary}25`,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.md,
+    overflow: "hidden",
   },
   statsHeader: {
     alignItems: "flex-start",
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.sm,
+  },
+  statsHeaderTopRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: SPACING.sm,
   },
   statsBadge: {
     flexDirection: "row",
@@ -590,6 +603,19 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.3,
   },
+  statsYearChip: {
+    backgroundColor: COLORS.gray50,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+  },
+  statsYearText: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray600,
+    fontWeight: "600",
+  },
   statsTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: "bold",
@@ -605,7 +631,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.gray200,
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: COLORS.white,
     overflow: "hidden",
   },
   statRow: {
@@ -645,7 +671,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xl,
     fontWeight: "800",
     color: COLORS.gray900,
-    marginBottom: 2,
+    marginTop: 2,
   },
   statLabel: {
     fontSize: FONT_SIZES.xs,
