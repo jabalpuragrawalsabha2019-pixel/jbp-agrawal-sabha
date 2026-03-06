@@ -299,8 +299,8 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.statsYearText}>2026</Text>
               </View>
             </View>
-          </View>
           <Text style={styles.statsSubtitle}>Our Community at a Glance</Text>
+          </View>
           <View style={styles.statsList}>
             <View style={styles.statRow}>
               <View style={[styles.statIconBadge, styles.statIconMembers]}>
