@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     marginBottom: SPACING.xl,
     paddingVertical: SPACING.md,
-    borderRadius: RADIUS.full,
+    borderRadius: 5,
     backgroundColor: COLORS.primary,
   },
   bottomShareBtnText: {
