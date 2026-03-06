@@ -291,7 +291,6 @@ const HomeScreen = ({ navigation }) => {
         {/* Community Stats */}
         <Card style={styles.statsCard} variant="elevated">
           <View style={styles.statsTitleRow}>
-            <Ionicons name="sparkles" size={16} color={COLORS.primary} />
             <Text style={styles.statsTitle}>हमारा समाज</Text>
           </View>
           <Text style={styles.statsSubtitle}>Our Community at a Glance</Text>
