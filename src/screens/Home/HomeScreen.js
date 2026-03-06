@@ -15,7 +15,13 @@ import { useAuth } from "../../hooks/useAuth";
 import { dbHelpers } from "../../config/supabase";
 import Card from "../../components/common/Card";
 import TrainAnimation from "../../components/common/TrainAnimation";
-import { COLORS, SPACING, RADIUS, FONT_SIZES } from "../../utils/constants";
+import {
+  COLORS,
+  SPACING,
+  RADIUS,
+  FONT_SIZES,
+  SHADOWS,
+} from "../../utils/constants";
 import agrasenImg from "../../../assets/agrasen.png";
 
 const HomeScreen = ({ navigation }) => {
@@ -101,7 +107,7 @@ const HomeScreen = ({ navigation }) => {
       icon: "people",
       color: COLORS.primary,
       screen: "Directory",
-      description: "Community members",
+      description: "Browse community members",
       requiresVerification: false,
     },
     {
@@ -110,7 +116,7 @@ const HomeScreen = ({ navigation }) => {
       icon: "heart",
       color: COLORS.error,
       screen: "Matrimonial",
-      description: "Find matches",
+      description: "Rishta connections",
       requiresVerification: false,
     },
     {
@@ -119,7 +125,7 @@ const HomeScreen = ({ navigation }) => {
       icon: "calendar",
       color: COLORS.secondary,
       screen: "Events",
-      description: "Programs & news",
+      description: "Upcoming programs",
       requiresVerification: false,
     },
     {
@@ -128,7 +134,7 @@ const HomeScreen = ({ navigation }) => {
       icon: "briefcase",
       color: COLORS.info,
       screen: "Jobs",
-      description: "Opportunities",
+      description: "Career opportunities",
       requiresVerification: false,
     },
     {
@@ -137,7 +143,7 @@ const HomeScreen = ({ navigation }) => {
       icon: "water",
       color: COLORS.error,
       screen: "BloodDonors",
-      description: "Emergency help",
+      description: "Save a life today",
       requiresVerification: false,
     },
     {
@@ -146,7 +152,7 @@ const HomeScreen = ({ navigation }) => {
       icon: "gift",
       color: COLORS.success,
       screen: "Donations",
-      description: "Support community",
+      description: "Give back to samaj",
       requiresVerification: false,
     },
     {
@@ -155,7 +161,7 @@ const HomeScreen = ({ navigation }) => {
       icon: "ribbon",
       color: COLORS.gold,
       screen: "PostHolders",
-      description: "Leadership team",
+      description: "Sabha leadership",
       requiresVerification: false,
     },
   ];
@@ -195,25 +201,14 @@ const HomeScreen = ({ navigation }) => {
             source={agrasenImg}
             style={[
               styles.quoteImage,
-              { width: 350, height: 350, marginBottom: -60 },
+              { width: 300, height: 300, marginBottom: -40 },
             ]}
           />
-          <Text
-            style={[
-              styles.quoteTitle,
-              { fontSize: 20, textAlign: "center", marginBottom: 20 },
-            ]}
-          >
-            Maharaj Agrasen
-          </Text>
-          <Text
-            style={[styles.quoteText, { fontSize: 18, textAlign: "center" }]}
-          >
-            "एक ईंट, एक रुपया"
-          </Text>
-          <Text
-            style={[styles.quoteSubtext, { fontSize: 14, textAlign: "center" }]}
-          >
+          <Text style={styles.quoteTitle}>Maharaj Agrasen Ji</Text>
+          <View style={styles.quoteDivider} />
+          <Text style={styles.quoteText}>"एक ईंट, एक रुपया"</Text>
+          <Text style={styles.quoteSubtext}>एकता • समृद्धि • सेवा</Text>
+          <Text style={styles.quoteEnglishSubtext}>
             Unity • Prosperity • Service
           </Text>
         </Card>
@@ -295,19 +290,38 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Community Stats */}
         <Card style={styles.statsCard} variant="elevated">
-          <Text style={styles.statsTitle}>Community Impact</Text>
+          <Text style={styles.statsTitle}>हमारा समाज</Text>
+          <Text style={styles.statsSubtitle}>Our Community at a Glance</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>5K+</Text>
+              <Ionicons
+                name="people"
+                size={22}
+                color={COLORS.primary}
+                style={{ marginBottom: SPACING.xs }}
+              />
+              <Text style={styles.statValue}>5,000+</Text>
               <Text style={styles.statLabel}>Members</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
+              <Ionicons
+                name="calendar"
+                size={22}
+                color={COLORS.secondary}
+                style={{ marginBottom: SPACING.xs }}
+              />
               <Text style={styles.statValue}>100+</Text>
-              <Text style={styles.statLabel}>Events</Text>
+              <Text style={styles.statLabel}>Events Held</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
+              <Ionicons
+                name="heart"
+                size={22}
+                color={COLORS.error}
+                style={{ marginBottom: SPACING.xs }}
+              />
               <Text style={styles.statValue}>500+</Text>
               <Text style={styles.statLabel}>Marriages</Text>
             </View>
@@ -316,12 +330,8 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            JBP Agrawal Sabha • Version 1.0.0
-          </Text>
-          <Text style={styles.footerSubtext}>
-            Made with ❤️ for the community
-          </Text>
+          <Text style={styles.footerText}>JBP Agrawal Sabha • v1.0.0</Text>
+          <Text style={styles.footerSubtext}>समाज सेवा में समर्पित 🙏</Text>
         </View>
       </ScrollView>
     </View>
@@ -396,7 +406,10 @@ const styles = StyleSheet.create({
   },
   quoteCard: {
     marginBottom: SPACING.lg,
-    backgroundColor: `${COLORS.primary}10`,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: `${COLORS.primary}25`,
+    overflow: "hidden",
   },
   quoteHeader: {
     flexDirection: "row",
@@ -414,26 +427,45 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: COLORS.gray100,
     borderRadius: 4,
   },
   quoteTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.xl,
     fontWeight: "bold",
-    color: COLORS.primary,
+    color: COLORS.primaryDark,
+    textAlign: "center",
+    marginBottom: SPACING.sm,
+  },
+  quoteDivider: {
+    width: 40,
+    height: 3,
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
+    marginBottom: SPACING.md,
   },
   quoteText: {
-    fontSize: FONT_SIZES.xl,
-    fontWeight: "600",
-    color: COLORS.gray800,
+    fontSize: FONT_SIZES["2xl"],
+    fontWeight: "700",
+    color: COLORS.gray900,
     marginBottom: SPACING.sm,
     fontStyle: "italic",
     textAlign: "center",
   },
   quoteSubtext: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.gray600,
+    fontSize: FONT_SIZES.base,
+    color: COLORS.primary,
     textAlign: "center",
+    fontWeight: "600",
+    letterSpacing: 2,
+    marginBottom: SPACING.xs,
+  },
+  quoteEnglishSubtext: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray500,
+    textAlign: "center",
+    letterSpacing: 3,
+    textTransform: "uppercase",
   },
   section: {
     marginBottom: SPACING.xl,
@@ -467,29 +499,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: COLORS.gray200,
+    ...SHADOWS.sm,
   },
   moduleIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   moduleTitle: {
     fontSize: FONT_SIZES.base,
-    fontWeight: "600",
+    fontWeight: "700",
     color: COLORS.gray900,
     marginBottom: SPACING.xs,
     textAlign: "center",
   },
   moduleDescription: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.gray600,
+    color: COLORS.gray500,
     textAlign: "center",
+    lineHeight: 16,
   },
   eventCard: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
   },
   eventContent: {
     flexDirection: "row",
@@ -497,10 +533,10 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   eventIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: `${COLORS.primary}20`,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: `${COLORS.primary}15`,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -509,23 +545,32 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: FONT_SIZES.base,
-    fontWeight: "600",
+    fontWeight: "700",
     color: COLORS.gray900,
     marginBottom: SPACING.xs,
   },
   eventDate: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.gray600,
+    color: COLORS.gray500,
   },
   statsCard: {
     marginBottom: SPACING.lg,
+    backgroundColor: `${COLORS.primary}08`,
+    borderWidth: 1,
+    borderColor: `${COLORS.primary}20`,
   },
   statsTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.xl,
     fontWeight: "bold",
-    color: COLORS.gray900,
-    marginBottom: SPACING.lg,
+    color: COLORS.primaryDark,
     textAlign: "center",
+    marginBottom: SPACING.xs,
+  },
+  statsSubtitle: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.gray500,
+    textAlign: "center",
+    marginBottom: SPACING.lg,
   },
   statsGrid: {
     flexDirection: "row",
@@ -533,16 +578,20 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: "center",
+    flex: 1,
   },
   statValue: {
     fontSize: FONT_SIZES["2xl"],
-    fontWeight: "bold",
-    color: COLORS.primary,
+    fontWeight: "800",
+    color: COLORS.gray900,
     marginBottom: SPACING.xs,
   },
   statLabel: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.gray600,
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray500,
+    fontWeight: "500",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   statDivider: {
     width: 1,
