@@ -32,7 +32,10 @@ export const authHelpers = {
   // Get current session
   getSession: async () => {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
       return { session, error };
     } catch (error) {
       return { session: null, error };
@@ -42,7 +45,10 @@ export const authHelpers = {
   // Get current user
   getCurrentUser: async () => {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
       return { user, error };
     } catch (error) {
       return { user: null, error };
@@ -56,82 +62,92 @@ export const dbHelpers = {
   checkApprovedMember: async (phone) => {
     const maxRetries = 2;
     let lastError = null;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`=== START PHONE CHECK (Attempt ${attempt}/${maxRetries}) ===`);
+        console.log(
+          `=== START PHONE CHECK (Attempt ${attempt}/${maxRetries}) ===`
+        );
         console.log('Input phone:', phone);
-        
+
         // Clean phone number (remove any spaces or special chars)
         const cleanPhone = phone.replace(/\D/g, '');
         console.log('Clean phone:', cleanPhone);
-        
+
         // Increase timeout on retry (first: 20s, second: 40s)
         const timeoutMs = attempt === 1 ? 20000 : 40000;
         console.log(`Timeout set to ${timeoutMs}ms for attempt ${attempt}`);
-        
+
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error(`Phone check timeout after ${timeoutMs}ms`)), timeoutMs);
+          setTimeout(
+            () => reject(new Error(`Phone check timeout after ${timeoutMs}ms`)),
+            timeoutMs
+          );
         });
-        
+
         console.log('Searching for phone:', cleanPhone);
         const phoneQuery = supabase
           .from('approved_members')
           .select('*')
           .eq('phone', cleanPhone)
           .maybeSingle();
-        
-        const result = await Promise.race([
-          phoneQuery,
-          timeoutPromise
-        ]);
-        
+
+        const result = await Promise.race([phoneQuery, timeoutPromise]);
+
         const { data, error } = result;
-        
-        console.log(`Phone search result (attempt ${attempt}):`, { found: !!data, error: error?.message });
+
+        console.log(`Phone search result (attempt ${attempt}):`, {
+          found: !!data,
+          error: error?.message,
+        });
         console.log(`=== END PHONE CHECK (attempt ${attempt}) ===`);
-        
+
         // If no match found, return null data (not an error)
         if (error && error.code === 'PGRST116') {
           return { data: null, error: null };
         }
-        
+
         if (error) {
           console.error(`Phone check error on attempt ${attempt}:`, error);
           lastError = error;
-          
+
           // If this is not the last attempt, retry
           if (attempt < maxRetries) {
             console.log(`Retrying phone check (attempt ${attempt + 1})...`);
             // Small delay before retry
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             continue;
           }
-          
+
           // Still allow signup on error - don't block users
           return { data: null, error: null };
         }
-        
+
         // Success
         return { data, error: null };
       } catch (error) {
-        console.error(`checkApprovedMember exception on attempt ${attempt}:`, error);
+        console.error(
+          `checkApprovedMember exception on attempt ${attempt}:`,
+          error
+        );
         lastError = error;
-        
+
         // If this is not the last attempt, retry
         if (attempt < maxRetries) {
-          console.log(`Retrying phone check after exception (attempt ${attempt + 1})...`);
+          console.log(
+            `Retrying phone check after exception (attempt ${attempt + 1})...`
+          );
           // Small delay before retry
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }
-        
+
         console.log('=== END PHONE CHECK (exception) ===');
         // Return null data on any error (allows unverified signup)
         return { data: null, error: null };
       }
     }
-    
+
     // Should never reach here, but just in case
     console.error('All retry attempts failed:', lastError);
     return { data: null, error: null };
@@ -141,21 +157,24 @@ export const dbHelpers = {
   upsertUserProfile: async (userId, profileData) => {
     try {
       console.log('upsertUserProfile called with:', { userId, profileData });
-      
+
       // Validate required fields
       if (!userId) {
         throw new Error('User ID is required');
       }
-      
+
       if (!profileData.phone) {
         throw new Error('Phone number is required');
       }
-      
+
       // Build the final data object
       const dataToUpdate = {
         id: userId,
         phone: profileData.phone.trim(),
         full_name: profileData.full_name?.trim() || '',
+        gender: profileData.gender || null,
+        guardian_type: profileData.guardian_type || 'father',
+        guardian_name: profileData.guardian_name?.trim() || null,
         city: profileData.city?.trim() || '',
         occupation: profileData.occupation?.trim() || null,
         is_verified: profileData.is_verified || false,
@@ -164,9 +183,9 @@ export const dbHelpers = {
         google_id: profileData.google_id || null,
         updated_at: new Date().toISOString(),
       };
-      
+
       console.log('Final data to upsert:', dataToUpdate);
-      
+
       // Use a safer upsert pattern: omit explicit `returning` option (client handles it)
       // and use `maybeSingle()` to avoid throwing if the response isn't exactly one row.
       const { data, error } = await supabase
@@ -174,18 +193,18 @@ export const dbHelpers = {
         .upsert(dataToUpdate, { onConflict: 'id' })
         .select()
         .maybeSingle();
-      
+
       console.log('Upsert result:', { success: !!data, error: error?.message });
-      
+
       if (error) {
         console.error('upsertUserProfile error:', error);
         throw error;
       }
-      
+
       if (!data) {
         throw new Error('No data returned from upsert');
       }
-      
+
       console.log('Profile created/updated successfully');
       return { data, error: null };
     } catch (error) {
@@ -203,7 +222,7 @@ export const dbHelpers = {
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-      
+
       console.log('Profile query result:', { data, error });
       return { data, error };
     } catch (error) {
@@ -238,7 +257,9 @@ export const dbHelpers = {
       if (filters.city) query = query.eq('city', filters.city);
       if (filters.gotra) query = query.eq('gotra', filters.gotra);
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('created_at', {
+        ascending: false,
+      });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -273,7 +294,10 @@ export const dbHelpers = {
         query = query.eq('is_announcement', true);
       }
 
-      const { data, error } = await query.order('event_date', { ascending: false, nullsFirst: false });
+      const { data, error } = await query.order('event_date', {
+        ascending: false,
+        nullsFirst: false,
+      });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -331,7 +355,9 @@ export const dbHelpers = {
       if (bloodGroup) query = query.eq('blood_group', bloodGroup);
       if (city) query = query.eq('city', city);
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('created_at', {
+        ascending: false,
+      });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -434,7 +460,9 @@ export const storageHelpers = {
   // Delete file
   deleteFile: async (bucket, path) => {
     try {
-      const { data, error } = await supabase.storage.from(bucket).remove([path]);
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .remove([path]);
       return { data, error };
     } catch (error) {
       return { data: null, error };

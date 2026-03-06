@@ -16,7 +16,14 @@ import { useAuth } from '../../hooks/useAuth';
 import { uploadImageToCloudinary } from '../../config/cloudinary';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { COLORS, SPACING, RADIUS, FONT_SIZES, CITIES, OCCUPATIONS } from '../../utils/constants';
+import {
+  COLORS,
+  SPACING,
+  RADIUS,
+  FONT_SIZES,
+  CITIES,
+  OCCUPATIONS,
+} from '../../utils/constants';
 
 const ProfileScreen = () => {
   const { profile, isVerified, isAdmin, updateProfile, signOut } = useAuth();
@@ -24,6 +31,9 @@ const ProfileScreen = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
+    gender: profile?.gender || '',
+    guardian_type: profile?.guardian_type || 'father',
+    guardian_name: profile?.guardian_name || '',
     city: profile?.city || '',
     occupation: profile?.occupation || '',
     photo_url: profile?.photo_url || '',
@@ -31,9 +41,13 @@ const ProfileScreen = () => {
 
   const handleImagePick = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Required', 'Please allow access to your photos');
+        Alert.alert(
+          'Permission Required',
+          'Please allow access to your photos'
+        );
         return;
       }
 
@@ -65,11 +79,18 @@ const ProfileScreen = () => {
       let photoUrl = formData.photo_url;
 
       // Upload photo to Cloudinary if changed
-      if (formData.photo_url && formData.photo_url !== profile?.photo_url && formData.photo_url.startsWith('file://')) {
+      if (
+        formData.photo_url &&
+        formData.photo_url !== profile?.photo_url &&
+        formData.photo_url.startsWith('file://')
+      ) {
         console.log('Uploading image to Cloudinary...');
-        
-        const uploadResult = await uploadImageToCloudinary(formData.photo_url, 'profiles');
-        
+
+        const uploadResult = await uploadImageToCloudinary(
+          formData.photo_url,
+          'profiles'
+        );
+
         if (uploadResult.success) {
           photoUrl = uploadResult.url;
           console.log('Image uploaded successfully:', photoUrl);
@@ -77,18 +98,22 @@ const ProfileScreen = () => {
           throw new Error('Failed to upload image: ' + uploadResult.error);
         }
       }
-      console.log("data to be sent - ", {
+      console.log('data to be sent - ', {
         full_name: formData.full_name,
-        // Use phone from formData if present, otherwise fall back to existing profile phone
+        gender: formData.gender,
+        guardian_type: formData.guardian_type,
+        guardian_name: formData.guardian_name,
         phone: formData.phone ?? profile?.phone,
         email: formData.email ?? profile?.email,
         city: formData.city,
         occupation: formData.occupation,
         photo_url: photoUrl,
-      })
+      });
       const { error } = await updateProfile({
         full_name: formData.full_name,
-        // Use phone from formData if present, otherwise fall back to existing profile phone
+        gender: formData.gender,
+        guardian_type: formData.guardian_type,
+        guardian_name: formData.guardian_name,
         phone: formData.phone ?? profile?.phone,
         email: formData.email ?? profile?.email,
         city: formData.city,
@@ -109,43 +134,42 @@ const ProfileScreen = () => {
   };
 
   const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('User initiated sign out');
-              const { error } = await signOut();
-              
-              if (error) {
-                Alert.alert('Error', 'Failed to sign out: ' + error.message);
-              } else {
-                console.log('Sign out successful, clearing app state...');
-                
-                // Clear any local state
-                setFormData({
-                  full_name: '',
-                  city: '',
-                  occupation: '',
-                  photo_url: '',
-                });
-                
-                // Force navigation to login (AppNavigator will handle this)
-                console.log('Waiting for navigation to login...');
-              }
-            } catch (err) {
-              console.error('Sign out exception:', err);
-              Alert.alert('Error', 'An error occurred during sign out');
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            console.log('User initiated sign out');
+            const { error } = await signOut();
+
+            if (error) {
+              Alert.alert('Error', 'Failed to sign out: ' + error.message);
+            } else {
+              console.log('Sign out successful, clearing app state...');
+
+              // Clear any local state
+              setFormData({
+                full_name: '',
+                gender: '',
+                guardian_type: 'father',
+                guardian_name: '',
+                city: '',
+                occupation: '',
+                photo_url: '',
+              });
+
+              // Force navigation to login (AppNavigator will handle this)
+              console.log('Waiting for navigation to login...');
             }
-          },
+          } catch (err) {
+            console.error('Sign out exception:', err);
+            Alert.alert('Error', 'An error occurred during sign out');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -159,7 +183,10 @@ const ProfileScreen = () => {
             disabled={!editing}
           >
             {formData.photo_url ? (
-              <Image source={{ uri: formData.photo_url }} style={styles.avatar} />
+              <Image
+                source={{ uri: formData.photo_url }}
+                style={styles.avatar}
+              />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Ionicons name="person" size={60} color={COLORS.gray400} />
@@ -177,7 +204,11 @@ const ProfileScreen = () => {
             <View style={styles.statusBadge}>
               {isVerified ? (
                 <>
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={COLORS.success}
+                  />
                   <Text style={styles.verifiedText}>Verified Member</Text>
                 </>
               ) : (
@@ -189,7 +220,11 @@ const ProfileScreen = () => {
             </View>
             {isAdmin && (
               <View style={styles.adminBadge}>
-                <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
+                <Ionicons
+                  name="shield-checkmark"
+                  size={16}
+                  color={COLORS.primary}
+                />
                 <Text style={styles.adminText}>Admin</Text>
               </View>
             )}
@@ -206,6 +241,9 @@ const ProfileScreen = () => {
               if (editing) {
                 setFormData({
                   full_name: profile?.full_name || '',
+                  gender: profile?.gender || '',
+                  guardian_type: profile?.guardian_type || 'father',
+                  guardian_name: profile?.guardian_name || '',
                   city: profile?.city || '',
                   occupation: profile?.occupation || '',
                   photo_url: profile?.photo_url || '',
@@ -224,7 +262,9 @@ const ProfileScreen = () => {
             <TextInput
               style={styles.input}
               value={formData.full_name}
-              onChangeText={(text) => setFormData({ ...formData, full_name: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, full_name: text })
+              }
               placeholder="Enter your name"
               placeholderTextColor={COLORS.gray400}
             />
@@ -232,6 +272,126 @@ const ProfileScreen = () => {
             <Text style={styles.value}>{profile?.full_name || '-'}</Text>
           )}
         </View>
+
+        <View style={styles.infoGroup}>
+          <Text style={styles.label}>Gender</Text>
+          {editing ? (
+            <View style={styles.genderRow}>
+              {['male', 'female'].map((g) => (
+                <TouchableOpacity
+                  key={g}
+                  style={[
+                    styles.genderOption,
+                    formData.gender === g && styles.genderOptionActive,
+                  ]}
+                  onPress={() =>
+                    setFormData({
+                      ...formData,
+                      gender: g,
+                      guardian_type: g === 'male' ? 'father' : 'father',
+                      guardian_name: '',
+                    })
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.genderOptionText,
+                      formData.gender === g && styles.genderOptionTextActive,
+                    ]}
+                  >
+                    {g === 'male' ? 'Male' : 'Female'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.value}>
+              {profile?.gender
+                ? profile.gender === 'male'
+                  ? 'Male'
+                  : 'Female'
+                : '-'}
+            </Text>
+          )}
+        </View>
+
+        {(editing
+          ? formData.gender === 'female'
+          : profile?.gender === 'female') && (
+          <View style={styles.infoGroup}>
+            <Text style={styles.label}>Name Type</Text>
+            {editing ? (
+              <View style={styles.genderRow}>
+                {['father', 'husband'].map((t) => (
+                  <TouchableOpacity
+                    key={t}
+                    style={[
+                      styles.genderOption,
+                      formData.guardian_type === t && styles.genderOptionActive,
+                    ]}
+                    onPress={() =>
+                      setFormData({
+                        ...formData,
+                        guardian_type: t,
+                        guardian_name: '',
+                      })
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.genderOptionText,
+                        formData.guardian_type === t &&
+                          styles.genderOptionTextActive,
+                      ]}
+                    >
+                      {t === 'father' ? "Father's Name" : "Husband's Name"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.value}>
+                {profile?.guardian_type === 'husband'
+                  ? "Husband's Name"
+                  : "Father's Name"}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {(formData.gender || profile?.gender) && (
+          <View style={styles.infoGroup}>
+            <Text style={styles.label}>
+              {(() => {
+                const gender = editing ? formData.gender : profile?.gender;
+                const gType = editing
+                  ? formData.guardian_type
+                  : profile?.guardian_type;
+                if (gender === 'female' && gType === 'husband')
+                  return "Husband's Name";
+                return "Father's Name";
+              })()}
+            </Text>
+            {editing ? (
+              <TextInput
+                style={styles.input}
+                value={formData.guardian_name}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, guardian_name: text })
+                }
+                placeholder={
+                  formData.gender === 'female' &&
+                  formData.guardian_type === 'husband'
+                    ? "Enter husband's name"
+                    : "Enter father's name"
+                }
+                placeholderTextColor={COLORS.gray400}
+              />
+            ) : (
+              <Text style={styles.value}>{profile?.guardian_name || '-'}</Text>
+            )}
+          </View>
+        )}
 
         <View style={styles.infoGroup}>
           <Text style={styles.label}>Phone</Text>
@@ -264,7 +424,9 @@ const ProfileScreen = () => {
             <TextInput
               style={styles.input}
               value={formData.occupation}
-              onChangeText={(text) => setFormData({ ...formData, occupation: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, occupation: text })
+              }
               placeholder="Enter your occupation"
               placeholderTextColor={COLORS.gray400}
             />
@@ -287,10 +449,12 @@ const ProfileScreen = () => {
       {/* Account Actions */}
       <Card style={styles.actionsCard}>
         <Text style={styles.cardTitle}>Account</Text>
-        
+
         <TouchableOpacity style={styles.actionItem} onPress={handleSignOut}>
           <Ionicons name="log-out-outline" size={24} color={COLORS.error} />
-          <Text style={[styles.actionText, { color: COLORS.error }]}>Sign Out</Text>
+          <Text style={[styles.actionText, { color: COLORS.error }]}>
+            Sign Out
+          </Text>
         </TouchableOpacity>
       </Card>
 
@@ -439,6 +603,32 @@ const styles = StyleSheet.create({
     borderColor: COLORS.gray300,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.md,
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  genderOption: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.gray300,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+  },
+  genderOptionActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: `${COLORS.primary}15`,
+  },
+  genderOptionText: {
+    fontSize: FONT_SIZES.base,
+    color: COLORS.gray600,
+    fontWeight: '500',
+  },
+  genderOptionTextActive: {
+    color: COLORS.primary,
+    fontWeight: '700',
   },
   saveButton: {
     marginTop: SPACING.md,

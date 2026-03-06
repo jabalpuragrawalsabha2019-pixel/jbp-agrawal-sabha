@@ -9,13 +9,23 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
-import { COLORS, SPACING, RADIUS, FONT_SIZES, PATTERNS } from '../../utils/constants';
+import {
+  COLORS,
+  SPACING,
+  RADIUS,
+  FONT_SIZES,
+  PATTERNS,
+} from '../../utils/constants';
+
+const GENDER_OPTIONS = ['male', 'female'];
+const GUARDIAN_TYPES = ['father', 'husband'];
 
 const PhoneVerificationScreen = () => {
   const { checkPhoneVerification, createUserProfile, user } = useAuth();
@@ -25,6 +35,9 @@ const PhoneVerificationScreen = () => {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState({
     full_name: user?.user_metadata?.full_name || '',
+    gender: '',
+    guardian_type: 'father',
+    guardian_name: '',
     city: '',
     occupation: '',
   });
@@ -41,6 +54,9 @@ const PhoneVerificationScreen = () => {
     setLoading(false);
     setAdditionalInfo({
       full_name: user?.user_metadata?.full_name || '',
+      gender: '',
+      guardian_type: 'father',
+      guardian_name: '',
       city: '',
       occupation: '',
     });
@@ -48,7 +64,10 @@ const PhoneVerificationScreen = () => {
 
   const handleVerifyPhone = async () => {
     if (!phone || !PATTERNS.phone.test(phone)) {
-      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number');
+      Alert.alert(
+        'Invalid Phone',
+        'Please enter a valid 10-digit phone number'
+      );
       return;
     }
 
@@ -57,23 +76,41 @@ const PhoneVerificationScreen = () => {
 
     setLoading(true);
     const cleanPhone = phone.trim();
-    console.log('Verifying phone (requestId=' + localRequestId + '):', cleanPhone);
+    console.log(
+      'Verifying phone (requestId=' + localRequestId + '):',
+      cleanPhone
+    );
     setLoadingMessage('Checking member registry...');
 
     // Increased timeout to account for potential retries (20s + 1s delay + 40s + 1s delay = 62s)
     // Adding 10s buffer = 72s total
     const timeoutMs = 72000;
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Phone verification is taking too long. Please try again.')), timeoutMs)
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              'Phone verification is taking too long. Please try again.'
+            )
+          ),
+        timeoutMs
+      )
     );
 
     try {
       // Race verification and timeout
-      const result = await Promise.race([checkPhoneVerification(cleanPhone), timeoutPromise]);
+      const result = await Promise.race([
+        checkPhoneVerification(cleanPhone),
+        timeoutPromise,
+      ]);
 
       // If another request or user change occurred, ignore this result
       if (localRequestId !== requestIdRef.current) {
-        console.log('Stale verification response (requestId=' + localRequestId + '), ignoring');
+        console.log(
+          'Stale verification response (requestId=' +
+            localRequestId +
+            '), ignoring'
+        );
         return;
       }
 
@@ -83,7 +120,10 @@ const PhoneVerificationScreen = () => {
       const data = result?.data ?? null;
       const error = result?.error ?? null;
 
-      console.log('Verification result (requestId=' + localRequestId + '):', { data, error });
+      console.log('Verification result (requestId=' + localRequestId + '):', {
+        data,
+        error,
+      });
 
       if (error) {
         console.log('Error during verification:', error);
@@ -101,6 +141,9 @@ const PhoneVerificationScreen = () => {
         setVerificationResult({ verified: true, data });
         setAdditionalInfo({
           full_name: data.full_name || user?.user_metadata?.full_name || '',
+          gender: '',
+          guardian_type: 'father',
+          guardian_name: '',
           city: data.city || '',
           occupation: '',
         });
@@ -121,14 +164,25 @@ const PhoneVerificationScreen = () => {
     } catch (err) {
       // If request is stale, ignore
       if (localRequestId !== requestIdRef.current) {
-        console.log('Stale/ignored error for requestId=' + localRequestId + ':', err.message);
+        console.log(
+          'Stale/ignored error for requestId=' + localRequestId + ':',
+          err.message
+        );
         return;
       }
 
       setLoading(false);
       setVerificationResult({ verified: false });
-      console.error('Verification error (requestId=' + localRequestId + '):', err);
-      Alert.alert('Verification Error', err.message || 'An unexpected error occurred. You can continue with limited access.', [{ text: 'OK' }]);
+      console.error(
+        'Verification error (requestId=' + localRequestId + '):',
+        err
+      );
+      Alert.alert(
+        'Verification Error',
+        err.message ||
+          'An unexpected error occurred. You can continue with limited access.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -150,10 +204,16 @@ const PhoneVerificationScreen = () => {
       const profileData = {
         phone: phone,
         full_name: additionalInfo.full_name.trim(),
+        gender: additionalInfo.gender || null,
+        guardian_type: additionalInfo.guardian_type || 'father',
+        guardian_name: additionalInfo.guardian_name.trim() || null,
         city: additionalInfo.city.trim(),
         occupation: additionalInfo.occupation.trim() || null,
         is_verified: verificationResult?.verified || false,
-        photo_url: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null,
+        photo_url:
+          user?.user_metadata?.avatar_url ||
+          user?.user_metadata?.picture ||
+          null,
       };
 
       console.log('Creating profile with data:', profileData);
@@ -190,7 +250,8 @@ const PhoneVerificationScreen = () => {
       console.error('Profile creation error:', error);
       Alert.alert(
         'Error',
-        error.message || 'Unable to create profile. Please check your connection and try again.'
+        error.message ||
+          'Unable to create profile. Please check your connection and try again.'
       );
       setLoading(false);
     }
@@ -215,8 +276,8 @@ const PhoneVerificationScreen = () => {
               {verificationResult === null
                 ? 'Enter your phone number to continue'
                 : verificationResult.verified
-                ? '✅ Verified! Complete your profile'
-                : '⚠️ Create your profile'}
+                  ? '✅ Verified! Complete your profile'
+                  : '⚠️ Create your profile'}
             </Text>
           </View>
 
@@ -255,7 +316,11 @@ const PhoneVerificationScreen = () => {
                 )}
 
                 <View style={styles.infoBox}>
-                  <Ionicons name="information-circle" size={20} color={COLORS.info} />
+                  <Ionicons
+                    name="information-circle"
+                    size={20}
+                    color={COLORS.info}
+                  />
                   <Text style={styles.infoText}>
                     Your phone will be checked against our member registry
                   </Text>
@@ -267,7 +332,11 @@ const PhoneVerificationScreen = () => {
             {verificationResult?.verified && (
               <Card style={styles.card}>
                 <View style={styles.successBanner}>
-                  <Ionicons name="checkmark-circle" size={50} color={COLORS.success} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={50}
+                    color={COLORS.success}
+                  />
                   <Text style={styles.successTitle}>Phone Verified!</Text>
                   <Text style={styles.successSubtext}>
                     You will have full access to all features
@@ -288,6 +357,103 @@ const PhoneVerificationScreen = () => {
                     value={additionalInfo.full_name}
                     onChangeText={(text) =>
                       setAdditionalInfo({ ...additionalInfo, full_name: text })
+                    }
+                    editable={!loading}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Gender</Text>
+                  <View style={styles.toggleRow}>
+                    {GENDER_OPTIONS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={[
+                          styles.toggleOption,
+                          additionalInfo.gender === opt.value &&
+                            styles.toggleOptionActive,
+                        ]}
+                        onPress={() =>
+                          setAdditionalInfo({
+                            ...additionalInfo,
+                            gender: opt.value,
+                          })
+                        }
+                        disabled={loading}
+                      >
+                        <Text
+                          style={[
+                            styles.toggleOptionText,
+                            additionalInfo.gender === opt.value &&
+                              styles.toggleOptionTextActive,
+                          ]}
+                        >
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {additionalInfo.gender === 'female' && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Name Type</Text>
+                    <View style={styles.toggleRow}>
+                      {GUARDIAN_TYPES.map((opt) => (
+                        <TouchableOpacity
+                          key={opt.value}
+                          style={[
+                            styles.toggleOption,
+                            additionalInfo.guardian_type === opt.value &&
+                              styles.toggleOptionActive,
+                          ]}
+                          onPress={() =>
+                            setAdditionalInfo({
+                              ...additionalInfo,
+                              guardian_type: opt.value,
+                            })
+                          }
+                          disabled={loading}
+                        >
+                          <Text
+                            style={[
+                              styles.toggleOptionText,
+                              additionalInfo.guardian_type === opt.value &&
+                                styles.toggleOptionTextActive,
+                            ]}
+                          >
+                            {opt.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    {additionalInfo.gender === 'female'
+                      ? additionalInfo.guardian_type === 'husband'
+                        ? "Husband's Name"
+                        : "Father's Name"
+                      : "Father's Name"}
+                  </Text>
+                  <TextInput
+                    style={styles.inputField}
+                    placeholder={
+                      additionalInfo.gender === 'female'
+                        ? additionalInfo.guardian_type === 'husband'
+                          ? "Enter husband's name"
+                          : "Enter father's name"
+                        : "Enter father's name"
+                    }
+                    placeholderTextColor={COLORS.gray400}
+                    value={additionalInfo.guardian_name}
+                    onChangeText={(text) =>
+                      setAdditionalInfo({
+                        ...additionalInfo,
+                        guardian_name: text,
+                      })
                     }
                     editable={!loading}
                   />
@@ -334,7 +500,11 @@ const PhoneVerificationScreen = () => {
             {verificationResult && !verificationResult.verified && (
               <Card style={styles.card}>
                 <View style={styles.warningBanner}>
-                  <Ionicons name="shield-checkmark-outline" size={50} color={COLORS.warning} />
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={50}
+                    color={COLORS.warning}
+                  />
                   <Text style={styles.warningTitle}>Create Your Profile</Text>
                   <Text style={styles.warningSubtext}>
                     Read-only access until admin verification
@@ -344,34 +514,76 @@ const PhoneVerificationScreen = () => {
                 <View style={styles.accessInfo}>
                   <Text style={styles.accessTitle}>What you can do:</Text>
                   <View style={styles.accessItem}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
-                    <Text style={styles.accessText}>View all events and announcements</Text>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={COLORS.success}
+                    />
+                    <Text style={styles.accessText}>
+                      View all events and announcements
+                    </Text>
                   </View>
                   <View style={styles.accessItem}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
-                    <Text style={styles.accessText}>Browse matrimonial profiles</Text>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={COLORS.success}
+                    />
+                    <Text style={styles.accessText}>
+                      Browse matrimonial profiles
+                    </Text>
                   </View>
                   <View style={styles.accessItem}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
-                    <Text style={styles.accessText}>View community directory</Text>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={COLORS.success}
+                    />
+                    <Text style={styles.accessText}>
+                      View community directory
+                    </Text>
                   </View>
                   <View style={styles.accessItem}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={COLORS.success}
+                    />
                     <Text style={styles.accessText}>See job postings</Text>
                   </View>
-                  
-                  <Text style={[styles.accessTitle, { marginTop: SPACING.md }]}>After verification:</Text>
+
+                  <Text style={[styles.accessTitle, { marginTop: SPACING.md }]}>
+                    After verification:
+                  </Text>
                   <View style={styles.accessItem}>
-                    <Ionicons name="lock-closed" size={16} color={COLORS.gray500} />
-                    <Text style={styles.accessTextLocked}>Post events and jobs</Text>
+                    <Ionicons
+                      name="lock-closed"
+                      size={16}
+                      color={COLORS.gray500}
+                    />
+                    <Text style={styles.accessTextLocked}>
+                      Post events and jobs
+                    </Text>
                   </View>
                   <View style={styles.accessItem}>
-                    <Ionicons name="lock-closed" size={16} color={COLORS.gray500} />
-                    <Text style={styles.accessTextLocked}>Create matrimonial profile</Text>
+                    <Ionicons
+                      name="lock-closed"
+                      size={16}
+                      color={COLORS.gray500}
+                    />
+                    <Text style={styles.accessTextLocked}>
+                      Create matrimonial profile
+                    </Text>
                   </View>
                   <View style={styles.accessItem}>
-                    <Ionicons name="lock-closed" size={16} color={COLORS.gray500} />
-                    <Text style={styles.accessTextLocked}>Access contact information</Text>
+                    <Ionicons
+                      name="lock-closed"
+                      size={16}
+                      color={COLORS.gray500}
+                    />
+                    <Text style={styles.accessTextLocked}>
+                      Access contact information
+                    </Text>
                   </View>
                 </View>
 
@@ -388,6 +600,106 @@ const PhoneVerificationScreen = () => {
                     editable={!loading}
                   />
                 </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Gender</Text>
+                  <View style={styles.toggleRow}>
+                    {GENDER_OPTIONS.map((g) => (
+                      <TouchableOpacity
+                        key={g}
+                        style={[
+                          styles.toggleOption,
+                          additionalInfo.gender === g &&
+                            styles.toggleOptionActive,
+                        ]}
+                        onPress={() =>
+                          setAdditionalInfo({
+                            ...additionalInfo,
+                            gender: g,
+                            guardian_type: 'father',
+                            guardian_name: '',
+                          })
+                        }
+                        disabled={loading}
+                      >
+                        <Text
+                          style={[
+                            styles.toggleOptionText,
+                            additionalInfo.gender === g &&
+                              styles.toggleOptionTextActive,
+                          ]}
+                        >
+                          {g === 'male' ? 'Male' : 'Female'}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {additionalInfo.gender === 'female' && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Name Type</Text>
+                    <View style={styles.toggleRow}>
+                      {GUARDIAN_TYPES.map((t) => (
+                        <TouchableOpacity
+                          key={t}
+                          style={[
+                            styles.toggleOption,
+                            additionalInfo.guardian_type === t &&
+                              styles.toggleOptionActive,
+                          ]}
+                          onPress={() =>
+                            setAdditionalInfo({
+                              ...additionalInfo,
+                              guardian_type: t,
+                              guardian_name: '',
+                            })
+                          }
+                          disabled={loading}
+                        >
+                          <Text
+                            style={[
+                              styles.toggleOptionText,
+                              additionalInfo.guardian_type === t &&
+                                styles.toggleOptionTextActive,
+                            ]}
+                          >
+                            {t === 'father' ? "Father's" : "Husband's"}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {additionalInfo.gender ? (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      {additionalInfo.gender === 'female' &&
+                      additionalInfo.guardian_type === 'husband'
+                        ? "Husband's Name"
+                        : "Father's Name"}
+                    </Text>
+                    <TextInput
+                      style={styles.inputField}
+                      placeholder={
+                        additionalInfo.gender === 'female' &&
+                        additionalInfo.guardian_type === 'husband'
+                          ? "Enter husband's name"
+                          : "Enter father's name"
+                      }
+                      placeholderTextColor={COLORS.gray400}
+                      value={additionalInfo.guardian_name}
+                      onChangeText={(text) =>
+                        setAdditionalInfo({
+                          ...additionalInfo,
+                          guardian_name: text,
+                        })
+                      }
+                      editable={!loading}
+                    />
+                  </View>
+                ) : null}
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>City *</Text>
@@ -425,9 +737,14 @@ const PhoneVerificationScreen = () => {
                 />
 
                 <View style={styles.infoBox}>
-                  <Ionicons name="information-circle" size={20} color={COLORS.info} />
+                  <Ionicons
+                    name="information-circle"
+                    size={20}
+                    color={COLORS.info}
+                  />
                   <Text style={styles.infoText}>
-                    An admin will review and verify your profile. You'll be notified once verified.
+                    An admin will review and verify your profile. You'll be
+                    notified once verified.
                   </Text>
                 </View>
               </Card>
@@ -597,6 +914,32 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: SPACING.lg,
     textAlign: 'center',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  toggleOption: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.gray300,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+  },
+  toggleOptionActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary + '15',
+  },
+  toggleOptionText: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.gray600,
+    fontWeight: '500',
+  },
+  toggleOptionTextActive: {
+    color: COLORS.primary,
+    fontWeight: '700',
   },
 });
 
