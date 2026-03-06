@@ -1,5 +1,5 @@
 // src/screens/Events/EventDetailScreen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,14 +9,14 @@ import {
   Dimensions,
   Share,
   TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../../config/supabase';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { COLORS, SPACING, RADIUS, FONT_SIZES } from '../../utils/constants';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "../../config/supabase";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import { COLORS, SPACING, RADIUS, FONT_SIZES } from "../../utils/constants";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const EventDetailScreen = ({ route }) => {
   const { eventId } = route.params;
@@ -30,15 +30,15 @@ const EventDetailScreen = ({ route }) => {
   const loadEvent = async () => {
     try {
       const { data, error } = await supabase
-        .from('events')
-        .select('*, users!events_posted_by_fkey(*)')
-        .eq('id', eventId)
+        .from("events")
+        .select("*, users!events_posted_by_fkey(*)")
+        .eq("id", eventId)
         .single();
 
       if (error) throw error;
       setEvent(data);
     } catch (error) {
-      console.error('Error loading event:', error);
+      console.error("Error loading event:", error);
     } finally {
       setLoading(false);
     }
@@ -47,17 +47,17 @@ const EventDetailScreen = ({ route }) => {
   const handleShare = async () => {
     try {
       const shareMessage = event.is_announcement
-        ? `${event.announcement_text || event.title}\n\n${event.description || ''}`
-        : `${event.title}\n\nDate: ${new Date(event.event_date).toLocaleDateString()}\n\n${event.description || ''}`;
-      
+        ? `${event.announcement_text || event.title}\n\n${event.description || ""}`
+        : `${event.title}\n\nDate: ${new Date(event.event_date).toLocaleDateString()}\n\n${event.description || ""}`;
+
       await Share.share({
         message: shareMessage,
-        title: event.is_announcement 
-          ? (event.announcement_text || event.title || 'Announcement')
-          : (event.title || 'Event'),
+        title: event.is_announcement
+          ? event.announcement_text || event.title || "Announcement"
+          : event.title || "Event",
       });
     } catch (error) {
-      console.error('Share error:', error);
+      console.error("Share error:", error);
     }
   };
 
@@ -86,38 +86,47 @@ const EventDetailScreen = ({ route }) => {
       <Card style={styles.card}>
         <View style={styles.headerRow}>
           <View style={styles.typeBadge}>
-            <Ionicons 
-              name={event.is_announcement ? "megaphone" : "calendar"} 
-              size={16} 
-              color={COLORS.primary} 
+            <Ionicons
+              name={event.is_announcement ? "megaphone" : "calendar"}
+              size={16}
+              color={COLORS.primary}
             />
             <Text style={styles.typeBadgeText}>
-              {event.is_announcement 
-                ? 'ANNOUNCEMENT' 
-                : (event.event_type?.toUpperCase() || 'EVENT')}
+              {event.is_announcement
+                ? "ANNOUNCEMENT"
+                : event.event_type?.toUpperCase() || "EVENT"}
             </Text>
           </View>
-          <TouchableOpacity onPress={handleShare}>
-            <Ionicons name="share-social" size={24} color={COLORS.primary} />
+          <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
+            <Ionicons
+              name="share-social-outline"
+              size={16}
+              color={COLORS.primary}
+            />
+            <Text style={styles.shareBtnText}>Share</Text>
           </TouchableOpacity>
         </View>
 
         <Text style={styles.title}>
-          {event.is_announcement 
-            ? (event.announcement_text || event.title || 'Announcement')
-            : (event.title || 'Event')}
+          {event.is_announcement
+            ? event.announcement_text || event.title || "Announcement"
+            : event.title || "Event"}
         </Text>
 
         {!event.is_announcement && event.event_date && (
           <>
             <View style={styles.dateRow}>
-              <Ionicons name="calendar-outline" size={20} color={COLORS.gray600} />
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={COLORS.gray600}
+              />
               <Text style={styles.dateText}>
-                {new Date(event.event_date).toLocaleDateString('en-IN', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
+                {new Date(event.event_date).toLocaleDateString("en-IN", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </Text>
             </View>
@@ -125,9 +134,9 @@ const EventDetailScreen = ({ route }) => {
             <View style={styles.dateRow}>
               <Ionicons name="time-outline" size={20} color={COLORS.gray600} />
               <Text style={styles.dateText}>
-                {new Date(event.event_date).toLocaleTimeString('en-IN', {
-                  hour: '2-digit',
-                  minute: '2-digit',
+                {new Date(event.event_date).toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </Text>
             </View>
@@ -150,29 +159,26 @@ const EventDetailScreen = ({ route }) => {
           </View>
           <View style={styles.postedByInfo}>
             <Text style={styles.postedByName}>
-              {event.users?.full_name || 'Admin'}
+              {event.users?.full_name || "Admin"}
             </Text>
             <Text style={styles.postedByDate}>
-              Posted on{' '}
-              {new Date(event.created_at).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
+              Posted on{" "}
+              {new Date(event.created_at).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
               })}
             </Text>
           </View>
         </View>
       </Card>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title={event.is_announcement ? "Share Announcement" : "Share Event"}
-          onPress={handleShare}
-          variant="outline"
-          fullWidth
-          icon={<Ionicons name="share-social" size={20} color={COLORS.primary} />}
-        />
-      </View>
+      <TouchableOpacity style={styles.bottomShareBtn} onPress={handleShare}>
+        <Ionicons name="share-social-outline" size={20} color={COLORS.white} />
+        <Text style={styles.bottomShareBtnText}>
+          {event.is_announcement ? "Share Announcement" : "Share Event"}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -187,26 +193,59 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   poster: {
     width: width,
     height: 300,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   card: {
     margin: SPACING.lg,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SPACING.md,
   },
+  bottomShareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.sm,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primary,
+  },
+  bottomShareBtnText: {
+    fontSize: FONT_SIZES.base,
+    fontWeight: "700",
+    color: COLORS.white,
+  },
+  shareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
+    borderWidth: 1.5,
+    borderColor: `${COLORS.primary}40`,
+    backgroundColor: `${COLORS.primary}08`,
+  },
+  shareBtnText: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
   typeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.xs,
     backgroundColor: `${COLORS.primary}10`,
     paddingHorizontal: SPACING.md,
@@ -215,18 +254,18 @@ const styles = StyleSheet.create({
   },
   typeBadgeText: {
     fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
   },
   title: {
-    fontSize: FONT_SIZES['2xl'],
-    fontWeight: 'bold',
+    fontSize: FONT_SIZES["2xl"],
+    fontWeight: "bold",
     color: COLORS.gray900,
     marginBottom: SPACING.lg,
   },
   dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.md,
     marginBottom: SPACING.sm,
   },
@@ -236,7 +275,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.gray900,
     marginBottom: SPACING.md,
   },
@@ -246,8 +285,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   postedBySection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.md,
   },
   avatarPlaceholder: {
@@ -255,15 +294,15 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: COLORS.gray100,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   postedByInfo: {
     flex: 1,
   },
   postedByName: {
     fontSize: FONT_SIZES.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray900,
     marginBottom: SPACING.xs,
   },
