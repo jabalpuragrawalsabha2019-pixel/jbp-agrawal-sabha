@@ -4,28 +4,33 @@ module.exports = {
     name: "JBP Agrawal Sabha",
     slug: "jbp-agrawal-sabha",
     owner: "jabalpuragrawalsabha2019",
-    version: "1.0.0",
+    version: "1.0.3",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     splash: {
       image: "./assets/splash.png",
       resizeMode: "contain",
-      backgroundColor: "#00000000"
+      backgroundColor: "transparent"
     },
     assetBundlePatterns: [
       "**/*"
     ],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.jbpagrawal.sabha"
+      bundleIdentifier: "com.jbpagrawal.sabha",
+      buildNumber: "2",
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false
+      }
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
-        backgroundColor: "#00000000"
+        backgroundColor: "transparent"
       },
       package: "com.jbpagrawal.sabha",
+      versionCode: 4,
       permissions: [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",

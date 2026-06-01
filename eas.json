@@ -13,12 +13,21 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://mtudvgoueeldtnrccvyw.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10dWR2Z291ZWVsZHRucmNjdnl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyMzAwNTcsImV4cCI6MjA3NzgwNjA1N30.w1UptjBq1ehq01yOKL4Wklm3VHCsg8yhQYRL0zBxFv4",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "304857109539-37m6e9801jh91utq8ubkgm62o6pn3fu1.apps.googleusercontent.com",
+        "EAS_PROJECT_ID": "b330fdd8-8085-46a6-8b0d-8b6f5d2ba65e",
+        "EXPO_REDIRECT_URL": "https://auth.expo.io/@jabalpuragrawalsabha2019/jbp-agrawal-sabha",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "ds0bvuv2p",
+        "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "jbp-agrawal-uploads"
+      },
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   },
