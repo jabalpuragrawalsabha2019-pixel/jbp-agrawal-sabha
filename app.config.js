@@ -70,6 +70,7 @@ module.exports = {
       googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
       cloudinaryCloudName: process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME,
       cloudinaryUploadPreset: process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+      apiUrl: process.env.EXPO_PUBLIC_API_URL,
       eas: {
         projectId: process.env.EAS_PROJECT_ID || "b330fdd8-8085-46a6-8b0d-8b6f5d2ba65e"
       }

@@ -1,6 +1,7 @@
 // src/hooks/useAuth.js
 import { useState, useEffect, createContext, useContext } from "react";
 import { supabase, authHelpers, dbHelpers } from "../config/supabase";
+import { checkMembership, completeProfile } from "../api/profileApi";
 
 const AuthContext = createContext({});
 
@@ -159,19 +160,22 @@ export const AuthProvider = ({ children }) => {
   const checkPhoneVerification = async (phone) => {
     try {
       console.log("Starting phone verification for:", phone);
-      const { data, error } = await dbHelpers.checkApprovedMember(phone);
-
-      // Even if there's an error, we allow signup as unverified
-      if (error) {
-        console.log("Phone check error (allowing unverified):", error);
-        return { data: null, error: null };
-      }
-
-      return { data, error: null };
+      const result = await checkMembership(phone);
+      return {
+        data: result.verified
+          ? {
+              verified: true,
+              full_name: result.member?.full_name,
+              city: result.member?.city,
+              gotra: result.member?.gotra,
+            }
+          : null,
+        error: null,
+      };
     } catch (error) {
       console.error("Phone verification error:", error);
-      // Always allow signup, just as unverified
-      return { data: null, error: null };
+      // Fail closed for membership — do not treat network errors as verified
+      return { data: null, error };
     }
   };
 
@@ -179,12 +183,9 @@ export const AuthProvider = ({ children }) => {
     try {
       if (!user) throw new Error("No user logged in");
 
-      console.log("Creating profile for user:", user.id);
-      console.log("Profile data:", profileData);
+      console.log("Creating profile via secure API for user:", user.id);
 
-      const profilePayload = {
-        google_id: user.user_metadata?.sub,
-        email: user.email,
+      const { data, verified } = await completeProfile({
         phone: profileData.phone,
         full_name: profileData.full_name,
         gender: profileData.gender || null,
@@ -195,22 +196,11 @@ export const AuthProvider = ({ children }) => {
         pincode: profileData.pincode || null,
         occupation: profileData.occupation || null,
         photo_url: profileData.photo_url || null,
-        is_verified: profileData.is_verified || false,
-      };
+        email: user.email,
+        google_id: user.user_metadata?.sub,
+      });
 
-      console.log("Payload to send:", profilePayload);
-
-      const { data, error } = await dbHelpers.upsertUserProfile(
-        user.id,
-        profilePayload,
-      );
-
-      if (error) {
-        console.error("Profile creation failed:", error);
-        throw error;
-      }
-
-      console.log("Profile created successfully:", data);
+      console.log("Profile created successfully:", data?.id, "verified:", verified);
       setProfile(data);
       return { data, error: null };
     } catch (error) {

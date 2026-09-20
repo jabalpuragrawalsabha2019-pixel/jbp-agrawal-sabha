@@ -1,40 +1,41 @@
-// src/config/cloudinary.js
-import Constants from 'expo-constants';
+/**
+ * Cloudinary image upload/delete via signed Vercel API (no API secret on device).
+ */
+import { apiRequest } from '../api/client';
 
-const CLOUDINARY_CLOUD_NAME = Constants.expoConfig.extra.cloudinaryCloudName;
-const CLOUDINARY_UPLOAD_PRESET = Constants.expoConfig.extra.cloudinaryUploadPreset;
-
+/**
+ * Uploads an image using a server-signed Cloudinary request.
+ * @param {string} imageUri - Local file URI
+ * @param {string} folder - Folder under jbp-agrawal/
+ * @returns {Promise<{success: boolean, url?: string, publicId?: string, error?: string}>}
+ */
 export const uploadImageToCloudinary = async (imageUri, folder = 'general') => {
   try {
-    const data = new FormData();
-    
-    // Get file extension
-    const fileExtension = imageUri.split('.').pop();
+    const signed = await apiRequest('/api/cloudinary?action=sign', {
+      method: 'POST',
+      body: JSON.stringify({ folder }),
+    });
+
+    const fileExtension = imageUri.split('.').pop() || 'jpg';
     const fileName = `${Date.now()}.${fileExtension}`;
-    
-    data.append('file', {
+
+    const form = new FormData();
+    form.append('file', {
       uri: imageUri,
       type: `image/${fileExtension}`,
       name: fileName,
     });
-    
-    data.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    data.append('folder', `jbp-agrawal/${folder}`);
-    data.append('cloud_name', CLOUDINARY_CLOUD_NAME);
+    form.append('api_key', signed.apiKey);
+    form.append('timestamp', String(signed.timestamp));
+    form.append('signature', signed.signature);
+    form.append('folder', signed.folder);
 
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: data,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
+    const response = await fetch(signed.uploadUrl, {
+      method: 'POST',
+      body: form,
+    });
 
     const result = await response.json();
-
     if (result.error) {
       throw new Error(result.error.message);
     }
@@ -53,11 +54,16 @@ export const uploadImageToCloudinary = async (imageUri, folder = 'general') => {
   }
 };
 
+/**
+ * Deletes a Cloudinary asset through the secured API.
+ * @param {string} publicId
+ */
 export const deleteImageFromCloudinary = async (publicId) => {
   try {
-    // This would require server-side implementation with Cloudinary admin API
-    // For now, images will remain on Cloudinary (within free tier limits)
-    console.log('Delete not implemented - image retained:', publicId);
+    await apiRequest('/api/cloudinary?action=delete', {
+      method: 'POST',
+      body: JSON.stringify({ publicId }),
+    });
     return { success: true };
   } catch (error) {
     console.error('Cloudinary delete error:', error);

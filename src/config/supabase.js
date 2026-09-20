@@ -154,12 +154,12 @@ export const dbHelpers = {
     return { data: null, error: null };
   },
 
-  // Create or update user profile
+  // Create or update user profile (non-privileged fields only).
+  // is_verified / is_admin are enforced by DB triggers and the Vercel API.
   upsertUserProfile: async (userId, profileData) => {
     try {
       console.log("upsertUserProfile called with:", { userId, profileData });
 
-      // Validate required fields
       if (!userId) {
         throw new Error("User ID is required");
       }
@@ -168,7 +168,6 @@ export const dbHelpers = {
         throw new Error("Phone number is required");
       }
 
-      // Build the final data object
       const dataToUpdate = {
         id: userId,
         phone: profileData.phone.trim(),
@@ -180,7 +179,6 @@ export const dbHelpers = {
         address: profileData.address?.trim() || null,
         pincode: profileData.pincode?.trim() || null,
         occupation: profileData.occupation?.trim() || null,
-        is_verified: profileData.is_verified || false,
         photo_url: profileData.photo_url || null,
         email: profileData.email || null,
         google_id: profileData.google_id || null,
@@ -189,8 +187,6 @@ export const dbHelpers = {
 
       console.log("Final data to upsert:", dataToUpdate);
 
-      // Use a safer upsert pattern: omit explicit `returning` option (client handles it)
-      // and use `maybeSingle()` to avoid throwing if the response isn't exactly one row.
       const { data, error } = await supabase
         .from("users")
         .upsert(dataToUpdate, { onConflict: "id" })

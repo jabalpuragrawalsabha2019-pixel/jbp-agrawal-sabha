@@ -288,11 +288,13 @@ export const APP_INFO = {
   twitter: '',
 };
 
-// API Endpoints (if using Supabase Functions)
+// Backend API (Vercel — jbp-admin app/api)
 export const API_ENDPOINTS = {
-  generateReceipt: '/functions/v1/generate-receipt',
-  sendNotification: '/functions/v1/send-notification',
-  verifyUser: '/functions/v1/verify-user',
+  health: '/api/health',
+  profileComplete: '/api/profile?action=complete',
+  checkMembership: '/api/profile?action=check-membership',
+  cloudinarySign: '/api/cloudinary?action=sign',
+  cloudinaryDelete: '/api/cloudinary?action=delete',
 };
 
 // Storage Buckets

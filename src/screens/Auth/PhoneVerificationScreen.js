@@ -223,7 +223,6 @@ const PhoneVerificationScreen = () => {
         address: additionalInfo.address.trim() || null,
         pincode: additionalInfo.pincode.trim() || null,
         occupation: additionalInfo.occupation.trim() || null,
-        is_verified: verificationResult?.verified || false,
         photo_url:
           user?.user_metadata?.avatar_url ||
           user?.user_metadata?.picture ||
