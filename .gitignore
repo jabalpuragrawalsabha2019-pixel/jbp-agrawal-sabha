@@ -23,8 +23,12 @@ web-build/
 
 # Android build output
 /android/app/build/
+/android/app/.cxx/
 /android/.gradle/
+/android/.kotlin/
 /android/.cxx/
+/android/build/
+/android/local.properties
 
 # iOS build output
 /ios/build/
