@@ -1,4 +1,7 @@
-// src/screens/Auth/LoginScreen.js
+/**
+ * Login screen — Google OAuth entry point.
+ * Navigation after auth is handled by AppNavigator from AuthProvider state.
+ */
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -7,157 +10,58 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import { makeRedirectUri } from 'expo-auth-session';
-import { supabase } from '../../config/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { signInWithGoogleOAuth, getAuthRedirectUrl } from '../../utils/oauthSession';
 import { COLORS, SPACING, RADIUS, FONT_SIZES } from '../../utils/constants';
 
-WebBrowser.maybeCompleteAuthSession();
-
-const LoginScreen = ({ navigation }) => {
-  const { user, profile, loading: authLoading, needsPhoneVerification } = useAuth();
+const LoginScreen = () => {
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  // Handle auth state changes
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to be ready
-    
-    if (user) {
-      console.log('User authenticated:', user.id);
-      console.log('Has profile:', !!profile);
-      console.log('Needs phone verification:', needsPhoneVerification);
-      
-      if (needsPhoneVerification) {
-        // User logged in but no phone - go to verification
-        console.log('Redirecting to phone verification');
-        navigation.replace('PhoneVerification');
-      } else if (profile) {
-        // User has complete profile - go to home
-        console.log('Profile complete, going home');
-        navigation.replace('Home');
-      }
-    }
-  }, [user, profile, needsPhoneVerification, authLoading, navigation]);
-
-  // Create the redirect URI that works with both web and mobile
-  const redirectUrl = makeRedirectUri({
-    scheme: 'com.jbpagrawal.sabha',
-    path: 'auth/callback',
-  });
-
-  useEffect(() => {
-    console.log('Redirect URL:', redirectUrl);
+    console.log('Redirect URL:', getAuthRedirectUrl());
   }, []);
 
+  /**
+   * Starts Google OAuth. On success, AuthProvider + AppNavigator route the user.
+   * @returns {Promise<void>}
+   */
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       console.log('Starting Google Sign In...');
-      console.log('Using redirect URL:', redirectUrl);
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: false,
-        },
-      });
+      const { session, cancelled } = await signInWithGoogleOAuth();
 
-      if (error) {
-        console.error('Supabase OAuth error:', error);
-        throw error;
+      if (cancelled) {
+        console.log('Sign in cancelled or browser dismissed without tokens');
+        Alert.alert(
+          'Sign In Incomplete',
+          'Google sign-in did not return to the app.\n\nIn Supabase → Authentication → URL Configuration, add:\n• com.jbpagrawal.sabha://**\n• exp://**\n\nThen try again.',
+        );
+        return;
       }
 
-      console.log('Opening browser with URL:', data.url);
-
-      // Open the OAuth URL in browser
-      const result = await WebBrowser.openAuthSessionAsync(
-        data.url,
-        redirectUrl
-      );
-
-      console.log('Browser result:', result);
-
-      if (result.type === 'success' && result.url) {
-        console.log('Success! Processing callback...');
-        
-        try {
-          // The URL will contain either a hash fragment (#) or search params (?)
-          const url = new URL(result.url);
-          let params;
-          
-          if (url.hash) {
-            // Parse hash fragment
-            params = new URLSearchParams(url.hash.substring(1));
-          } else {
-            // Parse search params
-            params = url.searchParams;
-          }
-          
-          const access_token = params.get('access_token');
-          const refresh_token = params.get('refresh_token');
-
-          console.log('Auth tokens found:', {
-            hasAccessToken: !!access_token,
-            hasRefreshToken: !!refresh_token
-          });
-
-          if (!access_token || !refresh_token) {
-            throw new Error('Invalid callback URL - missing tokens');
-          }
-
-          console.log('Setting session with tokens...');
-          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
-          
-          if (sessionError) {
-            throw sessionError;
-          }
-          
-          console.log('Session set successfully!');
-          console.log('User ID:', sessionData?.user?.id);
-          
-          // Get current session to verify
-          const { data: { session }, error: getCurrentError } = await supabase.auth.getSession();
-          if (getCurrentError) throw getCurrentError;
-          
-          if (!session) {
-            throw new Error('Session not established after sign in');
-          }
-          
-          console.log('Session verified! Auth state should update shortly...');
-          
-          // The AuthProvider's useEffect will handle navigation once it detects the session
-          setLoading(false);
-          
-        } catch (parseError) {
-          console.error('Error processing callback:', parseError);
-          Alert.alert(
-            'Sign In Error',
-            'There was a problem completing the sign in. Please try again.'
-          );
-          setLoading(false);
-        }
-      } else if (result.type === 'cancel' || result.type === 'dismiss') {
-        console.log('User cancelled or dismissed sign in');
-        setLoading(false);
+      if (!session) {
+        throw new Error('Session not established after sign in');
       }
+
+      console.log('Session verified for user:', session.user?.id);
     } catch (error) {
       console.error('Sign in error:', error);
       Alert.alert(
         'Sign In Failed',
-        error.message || 'Unable to sign in with Google. Please try again.'
+        error.message || 'Unable to sign in with Google. Please try again.',
       );
+    } finally {
       setLoading(false);
     }
   };
+
+  const buttonBusy = loading || (authLoading && !!user);
 
   return (
     <LinearGradient
@@ -165,7 +69,6 @@ const LoginScreen = ({ navigation }) => {
       style={styles.container}
     >
       <View style={styles.content}>
-        {/* Logo and Title */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoEmoji}>🏛️</Text>
@@ -173,12 +76,9 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.title}>JBP Agrawal Sabha</Text>
           <Text style={styles.subtitle}>Unity • Prosperity • Service</Text>
           <View style={styles.divider} />
-          <Text style={styles.tagline}>
-            Inspired by Maharaj Agrasen
-          </Text>
+          <Text style={styles.tagline}>Inspired by Maharaj Agrasen</Text>
         </View>
 
-        {/* Features */}
         <View style={styles.features}>
           {[
             { icon: 'people', text: 'Connect with Community' },
@@ -193,15 +93,14 @@ const LoginScreen = ({ navigation }) => {
           ))}
         </View>
 
-        {/* Sign In Button */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.googleButton}
             onPress={handleGoogleSignIn}
-            disabled={loading}
+            disabled={buttonBusy}
             activeOpacity={0.8}
           >
-            {loading ? (
+            {buttonBusy ? (
               <ActivityIndicator color={COLORS.gray700} />
             ) : (
               <>
@@ -216,7 +115,6 @@ const LoginScreen = ({ navigation }) => {
           </Text>
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Made with ❤️ for Jabalpur Agrawal Community

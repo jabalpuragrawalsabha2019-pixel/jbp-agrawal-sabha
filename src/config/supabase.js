@@ -12,7 +12,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
+    // Native apps handle OAuth callbacks manually via deep links
+    detectSessionInUrl: false,
     debug: true,
   },
 });
