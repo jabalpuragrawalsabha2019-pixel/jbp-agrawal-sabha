@@ -254,11 +254,29 @@ export const dbHelpers = {
 
       if (filters.gender) query = query.eq("gender", filters.gender);
       if (filters.city) query = query.eq("city", filters.city);
+      if (filters.district) query = query.eq("district", filters.district);
       if (filters.gotra) query = query.eq("gotra", filters.gotra);
 
       const { data, error } = await query.order("created_at", {
         ascending: false,
       });
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Lists all matrimonial profiles owned by the given user (any status).
+   * @param {string} userId
+   */
+  getMyMatrimonialProfiles: async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from("matrimonial_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -275,6 +293,22 @@ export const dbHelpers = {
       return { data, error };
     } catch (error) {
       return { data: null, error };
+    }
+  },
+
+  /**
+   * Deletes an owned pending/rejected matrimonial profile.
+   * @param {string} profileId
+   */
+  deleteMatrimonialProfile: async (profileId) => {
+    try {
+      const { error } = await supabase
+        .from("matrimonial_profiles")
+        .delete()
+        .eq("id", profileId);
+      return { error };
+    } catch (error) {
+      return { error };
     }
   },
 

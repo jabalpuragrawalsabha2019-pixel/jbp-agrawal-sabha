@@ -1,4 +1,6 @@
-// src/screens/Matrimonial/MatrimonialDetailScreen.js
+/**
+ * Matrimonial profile detail — shows Pratyashi Parichay fields for approved/own profiles.
+ */
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -6,10 +8,8 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  TouchableOpacity,
   Alert,
   Dimensions,
-  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase, dbHelpers } from '../../config/supabase';
@@ -19,6 +19,17 @@ import Button from '../../components/common/Button';
 import { COLORS, SPACING, RADIUS, FONT_SIZES } from '../../utils/constants';
 
 const { width } = Dimensions.get('window');
+
+/** Renders a label/value row when value is present. */
+function DetailRow({ label, value }) {
+  if (value === null || value === undefined || value === '') return null;
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{String(value)}</Text>
+    </View>
+  );
+}
 
 const MatrimonialDetailScreen = ({ route }) => {
   const { profileId } = route.params;
@@ -35,10 +46,9 @@ const MatrimonialDetailScreen = ({ route }) => {
     try {
       const { data, error } = await supabase
         .from('matrimonial_profiles')
-        .select('*, users!matrimonial_profiles_user_id_fkey(*)') 
+        .select('*, users!matrimonial_profiles_user_id_fkey(*)')
         .eq('id', profileId)
         .single();
-
       if (error) throw error;
       setProfile(data);
     } catch (error) {
@@ -51,235 +61,178 @@ const MatrimonialDetailScreen = ({ route }) => {
 
   const handleContactRequest = async () => {
     if (!isVerified) {
-      Alert.alert(
-        'Verification Required',
-        'You need to be verified to send contact requests'
-      );
+      Alert.alert('Verification Required', 'You need to be verified to send contact requests');
       return;
     }
 
-    Alert.alert(
-      'Send Contact Request',
-      'Would you like to send a contact request to this profile?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Send Request',
-          onPress: async () => {
-            try {
-              setRequesting(true);
-              const { error } = await dbHelpers.createContactRequest(
-                profileId,
-                userProfile.id
-              );
-
-              if (error) throw error;
-
-              Alert.alert(
-                'Request Sent',
-                'Your contact request has been sent successfully!'
-              );
-            } catch (error) {
-              console.error('Error sending request:', error);
-              Alert.alert('Error', 'Failed to send contact request');
-            } finally {
-              setRequesting(false);
-            }
-          },
+    Alert.alert('Send Contact Request', 'Send a contact request for this profile?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Send',
+        onPress: async () => {
+          try {
+            setRequesting(true);
+            const { error } = await dbHelpers.createContactRequest(
+              profileId,
+              userProfile.id,
+            );
+            if (error) throw error;
+            Alert.alert('Request Sent', 'Your contact request was sent successfully.');
+          } catch (error) {
+            Alert.alert('Error', 'Failed to send contact request');
+          } finally {
+            setRequesting(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  if (loading) {
+  if (loading || !profile) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <Text>{loading ? 'Loading...' : 'Profile not found'}</Text>
       </View>
     );
   }
 
-  if (!profile) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Profile not found</Text>
-      </View>
-    );
-  }
+  const isOwner = userProfile?.id === profile.user_id;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Photos */}
-      {profile.photos && profile.photos.length > 0 && (
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.photoScroll}
-        >
+      {profile.photos?.length > 0 && (
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
           {profile.photos.map((photo, index) => (
-            <Image
-              key={index}
-              source={{ uri: photo }}
-              style={styles.photo}
-              resizeMode="cover"
-            />
+            <Image key={index} source={{ uri: photo }} style={styles.photo} />
           ))}
         </ScrollView>
       )}
 
-      {/* Basic Info */}
       <Card style={styles.card}>
-        <Text style={styles.name}>{profile.users?.full_name || 'Anonymous'}</Text>
-        
-        <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <Ionicons name="calendar" size={20} color={COLORS.primary} />
-            <Text style={styles.infoLabel}>Age</Text>
-            <Text style={styles.infoValue}>{profile.age} years</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Ionicons name="male-female" size={20} color={COLORS.primary} />
-            <Text style={styles.infoLabel}>Gender</Text>
-            <Text style={styles.infoValue}>
-              {profile.gender === 'male' ? 'Male' : 'Female'}
-            </Text>
-          </View>
-
-          {profile.gotra && (
-            <View style={styles.infoItem}>
-              <Ionicons name="people" size={20} color={COLORS.primary} />
-              <Text style={styles.infoLabel}>Gotra</Text>
-              <Text style={styles.infoValue}>{profile.gotra}</Text>
-            </View>
-          )}
-        </View>
+        <Text style={styles.name}>
+          {profile.candidate_name || profile.users?.full_name || 'Anonymous'}
+        </Text>
+        {profile.status && profile.status !== 'approved' && isOwner ? (
+          <Text style={styles.statusNote}>Status: {profile.status}</Text>
+        ) : null}
+        <DetailRow label="Gotra" value={profile.gotra} />
+        <DetailRow label="Gender" value={profile.gender} />
+        <DetailRow label="Age" value={profile.age ? `${profile.age} years` : null} />
+        <DetailRow label="Date of birth" value={profile.date_of_birth} />
+        <DetailRow label="Birth time" value={profile.birth_time} />
+        <DetailRow label="Birth place" value={profile.birth_place} />
+        <DetailRow label="District" value={profile.district || profile.city} />
+        <DetailRow label="Height" value={profile.height} />
+        <DetailRow label="Complexion" value={profile.complexion} />
+        <DetailRow label="Blood group" value={profile.blood_group} />
+        <DetailRow label="Rashi" value={profile.rashi} />
       </Card>
 
-      {/* Education & Career */}
       <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Education & Career</Text>
-        
-        {profile.education && (
-          <View style={styles.detailRow}>
-            <Ionicons name="school" size={20} color={COLORS.gray600} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Education</Text>
-              <Text style={styles.detailValue}>{profile.education}</Text>
-            </View>
-          </View>
-        )}
-
-        {profile.occupation && (
-          <View style={styles.detailRow}>
-            <Ionicons name="briefcase" size={20} color={COLORS.gray600} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Occupation</Text>
-              <Text style={styles.detailValue}>{profile.occupation}</Text>
-            </View>
-          </View>
-        )}
-
-        {profile.city && (
-          <View style={styles.detailRow}>
-            <Ionicons name="location" size={20} color={COLORS.gray600} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>City</Text>
-              <Text style={styles.detailValue}>{profile.city}</Text>
-            </View>
-          </View>
-        )}
+        <Text style={styles.sectionTitle}>Education & Work</Text>
+        <DetailRow label="Education" value={profile.education} />
+        <DetailRow
+          label="Business/service"
+          value={profile.business_service_name || profile.occupation}
+        />
+        <DetailRow label="Annual income" value={profile.annual_income} />
+        <DetailRow label="Office address" value={profile.business_office_address} />
       </Card>
 
-      {/* Family Details */}
-      {profile.family_details && (
+      <Card style={styles.card}>
+        <Text style={styles.sectionTitle}>Family</Text>
+        <DetailRow
+          label="Brothers"
+          value={`${profile.brothers_married ?? 0} married, ${profile.brothers_unmarried ?? 0} unmarried`}
+        />
+        <DetailRow
+          label="Sisters"
+          value={`${profile.sisters_married ?? 0} married, ${profile.sisters_unmarried ?? 0} unmarried`}
+        />
+        <DetailRow label="Father/guardian" value={profile.father_guardian_name} />
+        <DetailRow label="Father mobile" value={profile.father_mobile} />
+        <DetailRow label="Father's work" value={profile.father_business_details} />
+        <DetailRow label="Father's income" value={profile.father_annual_income} />
+        <DetailRow label="Mother" value={profile.mother_name} />
+        <DetailRow label="Mother status" value={profile.mother_homemaker_or_service} />
+        <DetailRow label="Residential address" value={profile.residential_address} />
+      </Card>
+
+      <Card style={styles.card}>
+        <Text style={styles.sectionTitle}>Contact</Text>
+        <DetailRow label="Email" value={profile.email} />
+        <DetailRow label="WhatsApp" value={profile.whatsapp_number} />
+      </Card>
+
+      {(profile.special_statuses?.length > 0 ||
+        profile.previous_spouse_name ||
+        profile.disability_details) && (
         <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>Family Details</Text>
-          <Text style={styles.description}>{profile.family_details}</Text>
+          <Text style={styles.sectionTitle}>Additional circumstances</Text>
+          <DetailRow
+            label="Statuses"
+            value={(profile.special_statuses || []).join(', ')}
+          />
+          <DetailRow label="Previous spouse" value={profile.previous_spouse_name} />
+          <DetailRow label="Previous spouse mobile" value={profile.previous_spouse_mobile} />
+          <DetailRow
+            label="Previous father-in-law"
+            value={profile.previous_father_in_law_name_address}
+          />
+          <DetailRow
+            label="FIL mobile"
+            value={profile.previous_father_in_law_mobile}
+          />
+          <DetailRow
+            label="Sons"
+            value={
+              profile.sons_count != null
+                ? `${profile.sons_count} (${profile.sons_ages || 'ages n/a'})`
+                : null
+            }
+          />
+          <DetailRow
+            label="Daughters"
+            value={
+              profile.daughters_count != null
+                ? `${profile.daughters_count} (${profile.daughters_ages || 'ages n/a'})`
+                : null
+            }
+          />
+          <DetailRow label="Disability" value={profile.disability_details} />
         </Card>
       )}
 
-      {/* Additional Info */}
-      {profile.additional_info && (
-        <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>Additional Information</Text>
-          <Text style={styles.description}>{profile.additional_info}</Text>
-        </Card>
+      {!isOwner && (
+        <Button
+          title="Send Contact Request"
+          onPress={handleContactRequest}
+          loading={requesting}
+          fullWidth
+          style={styles.contactButton}
+          icon={<Ionicons name="mail" size={20} color={COLORS.white} />}
+        />
       )}
-
-      {/* Horoscope */}
-      {profile.horoscope_url && (
-        <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>Horoscope</Text>
-          <TouchableOpacity
-            style={styles.horoscopeButton}
-            onPress={() => Linking.openURL(profile.horoscope_url)}
-          >
-            <Ionicons name="document-text" size={24} color={COLORS.primary} />
-            <Text style={styles.horoscopeText}>View Horoscope</Text>
-          </TouchableOpacity>
-        </Card>
-      )}
-
-      {/* Contact Button */}
-      <Button
-        title="Send Contact Request"
-        onPress={handleContactRequest}
-        loading={requesting}
-        fullWidth
-        style={styles.contactButton}
-        icon={<Ionicons name="mail" size={20} color={COLORS.white} />}
-      />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    paddingBottom: SPACING['2xl'],
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  photoScroll: {
-    height: 400,
-  },
-  photo: {
-    width: width,
-    height: 400,
-  },
-  card: {
-    margin: SPACING.lg,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  content: { paddingBottom: SPACING['2xl'] },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  photo: { width, height: 400, resizeMode: 'cover' },
+  card: { margin: SPACING.lg },
   name: {
     fontSize: FONT_SIZES['2xl'],
     fontWeight: 'bold',
     color: COLORS.gray900,
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  infoItem: {
-    alignItems: 'center',
-    gap: SPACING.xs,
-  },
-  infoLabel: {
-    fontSize: FONT_SIZES.xs,
-    color: COLORS.gray600,
-  },
-  infoValue: {
-    fontSize: FONT_SIZES.base,
+  statusNote: {
+    color: COLORS.warning,
     fontWeight: '600',
-    color: COLORS.gray900,
+    marginBottom: SPACING.md,
   },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
@@ -288,49 +241,14 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   detailRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
     marginBottom: SPACING.md,
-    paddingBottom: SPACING.md,
+    paddingBottom: SPACING.sm,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray200,
   },
-  detailContent: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.gray600,
-    marginBottom: SPACING.xs,
-  },
-  detailValue: {
-    fontSize: FONT_SIZES.base,
-    color: COLORS.gray900,
-  },
-  description: {
-    fontSize: FONT_SIZES.base,
-    color: COLORS.gray700,
-    lineHeight: 22,
-  },
-  horoscopeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.md,
-    backgroundColor: `${COLORS.primary}10`,
-    paddingVertical: SPACING.md,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  horoscopeText: {
-    fontSize: FONT_SIZES.base,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  contactButton: {
-    marginHorizontal: SPACING.lg,
-  },
+  detailLabel: { fontSize: FONT_SIZES.sm, color: COLORS.gray600, marginBottom: 2 },
+  detailValue: { fontSize: FONT_SIZES.base, color: COLORS.gray900 },
+  contactButton: { marginHorizontal: SPACING.lg },
 });
 
 export default MatrimonialDetailScreen;
