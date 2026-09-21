@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../hooks/useAuth";
-import { uploadImageToCloudinary } from "../../config/cloudinary";
+import { replaceCloudinaryImage } from "../../config/cloudinary";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import {
@@ -82,12 +82,14 @@ const ProfileScreen = () => {
         // Immediately show the picked image as preview
         setFormData((prev) => ({ ...prev, photo_url: localUri }));
 
-        // Auto-upload to Cloudinary and persist
+        // Auto-upload to Cloudinary and persist (delete previous asset after success)
         try {
           setLoading(true);
-          const uploadResult = await uploadImageToCloudinary(
+          const previousUrl = profile?.photo_url || null;
+          const uploadResult = await replaceCloudinaryImage(
             localUri,
             "profiles",
+            previousUrl,
           );
           if (!uploadResult.success) throw new Error(uploadResult.error);
 
@@ -132,7 +134,7 @@ const ProfileScreen = () => {
 
       let photoUrl = formData.photo_url;
 
-      // Upload photo to Cloudinary if changed
+      // Upload photo to Cloudinary if changed (and delete previous cloud asset)
       if (
         formData.photo_url &&
         formData.photo_url !== profile?.photo_url &&
@@ -140,9 +142,10 @@ const ProfileScreen = () => {
       ) {
         console.log("Uploading image to Cloudinary...");
 
-        const uploadResult = await uploadImageToCloudinary(
+        const uploadResult = await replaceCloudinaryImage(
           formData.photo_url,
           "profiles",
+          profile?.photo_url,
         );
 
         if (uploadResult.success) {

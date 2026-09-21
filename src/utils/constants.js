@@ -295,6 +295,7 @@ export const API_ENDPOINTS = {
   checkMembership: '/api/profile?action=check-membership',
   cloudinarySign: '/api/cloudinary?action=sign',
   cloudinaryDelete: '/api/cloudinary?action=delete',
+  cloudinaryDeleteMany: '/api/cloudinary?action=delete-many',
 };
 
 // Storage Buckets

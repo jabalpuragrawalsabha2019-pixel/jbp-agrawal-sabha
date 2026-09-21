@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { dbHelpers } from '../../config/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { deleteCloudinaryUrls } from '../../config/cloudinary';
 import Card from '../../components/common/Card';
 import { COLORS, SPACING, RADIUS, FONT_SIZES } from '../../utils/constants';
 
@@ -83,9 +84,19 @@ const MatrimonialListScreen = ({ navigation }) => {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          const { error } = await dbHelpers.deleteMatrimonialProfile(item.id);
-          if (error) Alert.alert('Error', error.message);
-          else loadProfiles();
+          try {
+            // Delete Cloudinary assets first, then DB row
+            await deleteCloudinaryUrls([
+              ...(Array.isArray(item.photos) ? item.photos : []),
+              item.parent_signature_url,
+              item.candidate_signature_url,
+            ]);
+            const { error } = await dbHelpers.deleteMatrimonialProfile(item.id);
+            if (error) Alert.alert('Error', error.message);
+            else loadProfiles();
+          } catch (err) {
+            Alert.alert('Error', err.message || 'Failed to delete profile');
+          }
         },
       },
     ]);
